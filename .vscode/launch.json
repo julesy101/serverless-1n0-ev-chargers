@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "chargers",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "debug"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/chargers/handler.js"
+            ],
+            "port": 9229,
+            "sourceMaps": true
+        }
+ 
+    ]
+}

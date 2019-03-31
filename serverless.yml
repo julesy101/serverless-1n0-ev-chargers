@@ -1,0 +1,99 @@
+service: chargers
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  environment:
+    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+
+functions:
+  openMapUpdate:
+    handler: tasks/openMapUpdate.checkLatest
+    environment:
+      COUNTRY: GB
+    events:
+      - schedule:
+          name: timed-open-map-check
+          description: a timed check against open maps db
+          rate: rate(1 minute)
+          enabled: true
+          input:
+            stageParams:
+              stage: dev
+  addCharger:
+    handler: handlers/add.addCharger
+    events:
+      - http:
+          path: chargers/add
+          method: put 
+          integration: lambda      
+  deleteCharger:
+    handler: handlers/delete.deleteCharger
+    events:
+      - http:
+          path: chargers/delete
+          method: delete
+          integration: lambda
+  modifyCharger:
+    handler: handlers/update.updateCharger
+    events:
+      - http:
+          path: chargers/update
+          method: post
+          integration: lambda
+  getCharger:
+    handler: handlers/fetch.fetchCharger
+    events:
+      - http:
+          path: chargers/fetch/{id}
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: >
+                { 
+                  "id" : "$input.params('id')" 
+                }
+
+resources:
+  Resources:
+    ChargersDynamoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+
+custom: 
+  dynamodb:
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
+    migration:
+      dir: db/migrations
+      
+plugins:
+  - serverless-offline-scheduler
+  - serverless-dynamodb-local
+  - serverless-offline
