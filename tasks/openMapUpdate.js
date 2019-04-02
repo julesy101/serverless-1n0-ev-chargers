@@ -9,12 +9,12 @@ module.exports.checkLatest = async(event) => {
 
     // get the most recent last modified open charge map charger
     let lmd = await chargerRepository.openChargeMapLastModifiedDate();
-    let queryUrl = `${ocmUrl}&countrycode=${process.env.COUNTRY}&verbose=false`
+    let queryUrl = `${ocmUrl}&countrycode=${process.env.COUNTRY}&verbose=false&maxresults=250`
     if(lmd){
         // if lmd is populated we will limit the
         // query to save unnecessary processing:
         // expected format: yyyy-mm-dd
-        queryUrl = `${queryUrl}&modifiedsince=${lmd.toISOString()}`
+        queryUrl = `${queryUrl}&modifiedsince=${new Date(lmd).toISOString()}`
     }
     console.log(`querying: ${queryUrl}`);
 
@@ -25,12 +25,17 @@ module.exports.checkLatest = async(event) => {
         for(let i = 0; i < ocmChargers.length; i++){
             let ocmCharger = ocmChargers[i];
             let connections = [];
+            if(ocmCharger.DateCreated === lmd)
+                continue;
+
             for(let x = 0; x < ocmCharger.Connections.length; x++){
-                connections.push({
-                    type: ocmCharger.Connections[x].ConnectionType.Title,                    
-                    kw: ocmCharger.Connections[x].PowerKW,
-                    currentType: ocmCharger.Connections[x].CurrentType.Title
-                });
+                if(ocmCharger.Connections[x].CurrentType && ocmCharger.Connections[x].ConnectionType){
+                    connections.push({
+                        type: ocmCharger.Connections[x].ConnectionType.Title,                    
+                        kw: ocmCharger.Connections[x].PowerKW,
+                        currentType: ocmCharger.Connections[x].CurrentType.Title
+                    });
+                }
             }
             let network = null;
             if(ocmCharger.OperatorInfo){
@@ -40,8 +45,11 @@ module.exports.checkLatest = async(event) => {
                     contactEmail: ocmCharger.OperatorInfo.ContactEmail,              
                     title: ocmCharger.OperatorInfo.Title
                 };
+            } else {
+                continue;
             }
             let charger = new Charger({
+                ocmId: ocmCharger.ID,
                 connections: connections,
                 network: network,
                 address: {
@@ -58,13 +66,24 @@ module.exports.checkLatest = async(event) => {
                 ocm: {
                     id: ocmCharger.ID,
                     uuid: ocmCharger.UUID,
-                    dateLastVerified: ocmCharger.DateLastVerified
-                } 
+                    dateCreated: ocmCharger.DateCreated,
+                    dateLastStatusUpdate: ocmCharger.DateLastStatusUpdate
+                }
             });
+
             chargersToAdd.push(chargerRepository.addCharger(charger));
-            console.log(charger);
         }
+        console.log(`adding ${chargersToAdd.length} chargers from ${ocmChargers.length}`);
         let results = await Promise.all(chargersToAdd);
+        if(results.length > 0) {
+            let maxOcm;
+            for(let i = 0; i < results.length; i++){
+                
+                if(!maxOcm || new Date(maxOcm.dateCreated) < new Date(results[i].ocm.dateCreated))
+                    maxOcm = results[i].ocm;
+            }
+            await chargerRepository.setOpenChargeMapLastModifiedDate(maxOcm)
+        }
         console.log("chargers updated");
     }
 }

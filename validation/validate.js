@@ -1,12 +1,10 @@
 const Validator =  require('jsonschema').Validator;
-const defaultSchemas = require('./schemas');
+const addChargerModel = require('./models/addCharger');
 
 class ModelValidator {
     constructor(){
         this.validator = new Validator();
-        for(let key in defaultSchemas){
-            this.validator.addSchema(defaultSchemas[key]);
-        }
+        this.validator.addSchema(addChargerModel);
     }
 
     validate(object, type){

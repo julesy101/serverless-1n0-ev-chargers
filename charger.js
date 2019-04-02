@@ -1,6 +1,9 @@
 class Charger {
     constructor(dbEntity){        
         this.id;
+        this.ocmId;
+        this.created;
+        this.updated;
         this.connections = [];
         this.network;
         this.address;

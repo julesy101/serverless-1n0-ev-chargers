@@ -4,7 +4,8 @@ provider:
   name: aws
   runtime: nodejs8.10
   environment:
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_TABLE_CHARGER: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_TABLE_CHARGER_STATS: ${self:service}-stats-${opt:stage, self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -14,7 +15,17 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
-      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_CHARGER}"
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_CHARGER_STATS}"
+    
 
 functions:
   openMapUpdate:
@@ -36,7 +47,7 @@ functions:
       - http:
           path: chargers/add
           method: put 
-          integration: lambda      
+          integration: lambda
   deleteCharger:
     handler: handlers/delete.deleteCharger
     events:
@@ -67,9 +78,9 @@ functions:
 
 resources:
   Resources:
-    ChargersDynamoTable:
+    ChargersTable:
       Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Retain
+      DeletionPolicy: Delete
       Properties:
         AttributeDefinitions:
           -
@@ -79,10 +90,28 @@ resources:
           -
             AttributeName: id
             KeyType: HASH
+
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        TableName: ${self:provider.environment.DYNAMODB_TABLE_CHARGER}
+    ChargersStatsTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Delete
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: id
+            AttributeType: S
+        KeySchema:
+          -
+            AttributeName: id
+            KeyType: HASH
+
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:provider.environment.DYNAMODB_TABLE_CHARGER_STATS}
 
 custom: 
   dynamodb:
@@ -92,8 +121,38 @@ custom:
       migrate: true
     migration:
       dir: db/migrations
-      
+  documentation:
+    info:
+      version: "1"
+      title: "1n0 Serverless Charging"
+      description: "charger data aggregator service"
+      termsOfService: "http://www.1and0.co.uk"
+      contact:
+        name: "One & Zero"
+        url: "http://www.1and0.co.uk"
+        email: "hello@1and0.co.uk"
+      license:
+        name: "Licensing"
+        url: "http://www.1and0.co.uk/licensing"
+    tags:
+      -
+        name: "EV"
+        description: "Electric Vehicles"
+    resources:
+      -
+        path: "chargers/add"
+        description: "add charger to the service"
+      -
+        path: "chargers/update"
+        description: "update a charger in the service"
+      -
+        path: "chargers/delete"
+        description: "delete a charger from the service"
+      -
+        path: "chargers/fetch"
+        description: "fetch a charger from the service"
 plugins:
+  - serverless-aws-documentation
   - serverless-offline-scheduler
   - serverless-dynamodb-local
   - serverless-offline
