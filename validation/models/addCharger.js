@@ -13,7 +13,7 @@ module.exports = {
         "ocm": { "$ref": "#/definitions/ocm"},
         "ocmId": { "type": "string" }, 
     },
-    "required": ["connections", "network", "address", "ocm"],
+    "required": ["connections", "network", "address", "ocm", "ocmId"],
     "definitions": {
         "connections": {
             "type": "object",

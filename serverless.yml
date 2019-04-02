@@ -25,18 +25,18 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_CHARGER_STATS}"
-    
 
 functions:
   openMapUpdate:
     handler: tasks/openMapUpdate.checkLatest
     environment:
       COUNTRY: GB
+      MAXRESULTS: 10000
     events:
       - schedule:
           name: timed-open-map-check
           description: a timed check against open maps db
-          rate: rate(1 minute)
+          rate: rate(3 minutes)
           enabled: true
           input:
             stageParams:
@@ -101,11 +101,11 @@ resources:
             Projection:
               ProjectionType: ALL
             ProvisionedThroughput:
-              ReadCapacityUnits: 1
-              WriteCapacityUnits: 1
+              ReadCapacityUnits: 10
+              WriteCapacityUnits: 10
         ProvisionedThroughput:
-          ReadCapacityUnits: 1
-          WriteCapacityUnits: 1
+          ReadCapacityUnits: 10
+          WriteCapacityUnits: 10
         TableName: ${self:provider.environment.DYNAMODB_TABLE_CHARGER}
     ChargersStatsTable:
       Type: 'AWS::DynamoDB::Table'
@@ -119,7 +119,6 @@ resources:
           -
             AttributeName: id
             KeyType: HASH
-
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1

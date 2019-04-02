@@ -15,7 +15,7 @@ class ChargerRepository {
         let mostRecent = await dynamoDb.get(params)
                                        .promise();
         if(mostRecent.Item)
-            return mostRecent.Item.dateCreated;
+            return mostRecent.Item.dateLastStatusUpdate;
         
         return null;
     }
@@ -50,23 +50,23 @@ class ChargerRepository {
     async getOcmCharger(ocmId){
         let params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
+            IndexName: "OCMChargers",
             KeyConditionExpression: "ocmId = :ocmId",
             ExpressionAttributeValues: {
-                ":ocmId": `${ocmId}`
-            },
-            IndexName: "OCMChargers"
+                ":ocmId": ocmId
+            }
         }
 
         let item = await dynamoDb.query(params).promise();
-        if(item.Item)
-            return item.Item;
+        if(item.Items && item.Items.length > 0)
+            return item.Items[0];
         
             return null;
     }
 
     async addCharger(charger){
         let timestamp = new Date().getTime();
-        charger.id = uuid.v1();
+        charger.id = uuid.v4();
         charger.created = timestamp;
         charger.updated = timestamp;
 
@@ -81,8 +81,22 @@ class ChargerRepository {
         return charger;
     }
 
-    updateCharger(charger) {
+    async updateCharger(charger) {
+        if(!charger.id && charger.id !== "")
+            throw new Error("id must be provided to update charger");
 
+        let timestamp = new Date().getTime();
+        charger.updated = timestamp;
+
+        let params =  {
+            TableName: process.env.DYNAMODB_TABLE_CHARGER,
+            Item: charger
+        }
+
+        await dynamoDb.put(params)
+                      .promise();
+
+        return charger;
     }
 
     async deleteCharger(charger){
