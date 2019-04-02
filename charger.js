@@ -14,7 +14,7 @@ class Charger {
             let expConn = [];
             for(let i = 0; i < dbEntity.connections.length; i++){
                 let itm = dbEntity.connections[i];
-                expConn.push(new ChargerConnection(itm.type, itm.level, itm.kw, itm.currentType));
+                expConn.push(new ChargerConnection(itm.type, itm.kw, itm.currentType));
             }
             dbEntity.connections = expConn;
             Object.assign(this, dbEntity);
@@ -33,7 +33,6 @@ class Charger {
 
 class ChargerConnection {
     constructor(type, 
-                level, 
                 kw, 
                 currentType) {
         this.type = type;     

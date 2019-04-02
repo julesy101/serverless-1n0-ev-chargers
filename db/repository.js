@@ -50,12 +50,14 @@ class ChargerRepository {
     async getOcmCharger(ocmId){
         let params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
-            Key: {
-                "ocmId":  id 
-            } 
+            KeyConditionExpression: "ocmId = :ocmId",
+            ExpressionAttributeValues: {
+                ":ocmId": `${ocmId}`
+            },
+            IndexName: "OCMChargers"
         }
 
-        let item = await dynamoDb.get(params).promise();
+        let item = await dynamoDb.query(params).promise();
         if(item.Item)
             return item.Item;
         

@@ -8,5 +8,5 @@ if (process.env.IS_OFFLINE) {
     endpoint: 'http://localhost:8000',
   };
 }
-
+options.paramValidation = false;
 module.exports = new AWS.DynamoDB.DocumentClient(options);

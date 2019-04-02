@@ -17,7 +17,7 @@ module.exports.checkLatest = async(event) => {
         queryUrl = `${queryUrl}&modifiedsince=${new Date(lmd).toISOString()}`
     }
     console.log(`querying: ${queryUrl}`);
-
+    // make the network call:
     let ocmChargers = JSON.parse(await rp(queryUrl));  
     if(ocmChargers){
         console.log(`chargers found, processing ${ocmChargers.length} new chargers`)
@@ -71,20 +71,27 @@ module.exports.checkLatest = async(event) => {
                 }
             });
 
-            chargersToAdd.push(chargerRepository.addCharger(charger));
+            chargersToAdd.push(charger);
         }
-        console.log(`adding ${chargersToAdd.length} chargers from ${ocmChargers.length}`);
-        let results = await Promise.all(chargersToAdd);
-        if(results.length > 0) {
-            let maxOcm;
-            for(let i = 0; i < results.length; i++){
-                
-                if(!maxOcm || new Date(maxOcm.dateCreated) < new Date(results[i].ocm.dateCreated))
-                    maxOcm = results[i].ocm;
-            }
-            await chargerRepository.setOpenChargeMapLastModifiedDate(maxOcm)
-        }
+        console.log("checking to see if we should be updating or inserting")
+        // map update ids to a single dimension array to 
+        // filter the update chargers from the adds:
+        let updateCheck = chargersToAdd.map(x => chargerRepository.getOcmCharger(x.ocmId));
+        let updateIds = (await Promise.all(updateCheck)).map(x => x.ocmId);
+        // filter the updates from the adds:
+        let chargersToUpdate = chargersToAdd.filter(x => updateIds.includes(x.ocmId));
+        chargersToAdd = chargersToAdd.filter(x => !updateIds.includes(x.ocmId));
+        // get the results of the update:
+        let resultsForAdd = await Promise.all(chargersToAdd);
+        let resultsForUpdate = await Promise.all(chargersToUpdate);
+        // now lets see what the most recent status update we added was:
+        let highestAdd = resultsForAdd.sort(x => new Date(x.dateLastStatusUpdate))[resultsForAdd.length - 1];
+        let highestUpdate = resultsForUpdate.sort(x => new Date(x.dateLastStatusUpdate))[resultsForUpdate.length - 1];
+        if(new Date(highestAdd.dateLastStatusUpdate) > new Date(highestUpdate.dateLastStatusUpdate))
+            await chargerRepository.setOpenChargeMapLastModifiedDate(highestAdd)
+        else
+            await chargerRepository.setOpenChargeMapLastModifiedDate(highestUpdate)
+
         console.log("chargers updated");
     }
 }
-
