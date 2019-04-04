@@ -33,7 +33,7 @@ describe("open charge map sync lambda", () => {
         sinon.stub(ChargerRepository.prototype, 'openChargeMapLastModifiedDate')
              .callsFake(() => null)
         sinon.stub(ChargerRepository.prototype, 'getOcmCharger')
-             .callsFake((latest) => Promise.resolve(repoMocks.ocmChargers(4343545)));
+             .callsFake((latest) => Promise.resolve(repoMocks.ocmChargers()));
         sinon.stub(ChargerRepository.prototype, 'setOpenChargeMapLastModifiedDate')
              .callsFake((latest) => Promise.resolve());   
         
