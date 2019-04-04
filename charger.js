@@ -29,6 +29,15 @@ class Charger {
         }
         return maxpower;
     }
+
+    get totalConnections() {
+        return this.connections.length;
+    }
+
+    get currentTypes(){
+        return this.connections.map(x => x.currentType)
+                               .filter((v,i,s) => s.indexOf(v) === i);
+    }
 }
 
 class ChargerConnection {

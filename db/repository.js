@@ -114,3 +114,4 @@ class ChargerRepository {
 }
 
 module.exports = new ChargerRepository();
+module.exports.ChargerRepository = ChargerRepository;
