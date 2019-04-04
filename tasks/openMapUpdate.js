@@ -1,6 +1,7 @@
 const Charger = require("../charger")
-const rp = require('request-promise-native');
+const requestWrapper = require('../utilities/request-wrapper');
 const chargerRepository = require("../db/repository")
+const ocmMapper = require("../charger").transformOcmEntity;
 const ocmUrl = "https://api.openchargemap.io/v3/poi/?output=json";
 
 module.exports.checkLatest = async(event) => {
@@ -18,60 +19,17 @@ module.exports.checkLatest = async(event) => {
     }
     console.log(`querying: ${queryUrl}`);
     // make the network call:
-    let ocmChargers = JSON.parse(await rp(queryUrl));  
+    let ocmChargers = JSON.parse(await requestWrapper.get(queryUrl));  
     if(ocmChargers){
         console.log(`chargers found: processing ${ocmChargers.length} chargers`)
         let chargersToAdd = [];
         for(let i = 0; i < ocmChargers.length; i++){
             let ocmCharger = ocmChargers[i];
-            let connections = [];
-            if(!ocmCharger.ID)
+            let transformedOcmEntity = ocmMapper(ocmCharger);
+            if(ocmCharger == null)
                 continue;
-
-            for(let x = 0; x < ocmCharger.Connections.length; x++){
-                if(ocmCharger.Connections[x].CurrentType && ocmCharger.Connections[x].ConnectionType){
-                    connections.push({
-                        type: ocmCharger.Connections[x].ConnectionType.Title,                    
-                        kw: ocmCharger.Connections[x].PowerKW,
-                        currentType: ocmCharger.Connections[x].CurrentType.Title
-                    });
-                }
-            }
-            let network = null;
-            if(ocmCharger.OperatorInfo){
-                network = {
-                    websiteURL: ocmCharger.OperatorInfo.WebsiteURL,
-                    isPrivateIndividual: ocmCharger.OperatorInfo.IsPrivateIndividual,     
-                    contactEmail: ocmCharger.OperatorInfo.ContactEmail,              
-                    title: ocmCharger.OperatorInfo.Title
-                };
-            } else {
-                continue;
-            }
-            let charger = new Charger({
-                ocmId: ocmCharger.ID,
-                connections: connections,
-                network: network,
-                address: {
-                    title: ocmCharger.AddressInfo.Title,
-                    addressLine1: ocmCharger.AddressInfo.AddressLine1,
-                    addressLine2: ocmCharger.AddressInfo.AddressLine2,
-                    town: ocmCharger.AddressInfo.Town,
-                    stateOrProvince: ocmCharger.AddressInfo.StateOrProvince,
-                    postcode: ocmCharger.AddressInfo.Postcode,
-                    country: ocmCharger.AddressInfo.Country.ISOCode,                    
-                    latitude: ocmCharger.AddressInfo.Latitude,
-                    longitude: ocmCharger.AddressInfo.Longitude,
-                },
-                ocm: {
-                    id: ocmCharger.ID,
-                    uuid: ocmCharger.UUID,
-                    dateCreated: ocmCharger.DateCreated,
-                    dateLastStatusUpdate: ocmCharger.DateLastStatusUpdate
-                }
-            });
-
-            chargersToAdd.push(charger);
+            
+            chargersToAdd.push(new Charger(transformedOcmEntity));
         }
         if(chargersToAdd.length > 0) {
             // map update ids to a single dimension array to 

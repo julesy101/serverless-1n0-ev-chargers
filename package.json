@@ -16,7 +16,8 @@
     "serverless-dynamodb-local": "0.2.35",
     "serverless-offline": "^4.9.2",
     "serverless-offline-scheduler": "^0.3.7",
-    "sinon": "^7.3.1"
+    "sinon": "^7.3.1",
+    "sinon-chai": "^3.3.0"
   },
   "dependencies": {
     "aws-sdk": "^2.431.0",

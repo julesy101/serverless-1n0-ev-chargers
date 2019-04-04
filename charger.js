@@ -51,3 +51,52 @@ class ChargerConnection {
 }
 
 module.exports = Charger;
+module.exports.transformOcmEntity = (ocmCharger) => {
+    let connections = [];
+    if(!ocmCharger.ID)
+        return null;
+
+    for(let x = 0; x < ocmCharger.Connections.length; x++){
+        if(ocmCharger.Connections[x].CurrentType && ocmCharger.Connections[x].ConnectionType){
+            connections.push({
+                type: ocmCharger.Connections[x].ConnectionType.Title,                    
+                kw: ocmCharger.Connections[x].PowerKW,
+                currentType: ocmCharger.Connections[x].CurrentType.Title
+            });
+        }
+    }
+    let network = null;
+    if(ocmCharger.OperatorInfo){
+        network = {
+            websiteURL: ocmCharger.OperatorInfo.WebsiteURL,
+            isPrivateIndividual: ocmCharger.OperatorInfo.IsPrivateIndividual,     
+            contactEmail: ocmCharger.OperatorInfo.ContactEmail,              
+            title: ocmCharger.OperatorInfo.Title
+        };
+    } else {
+        return null;
+    }
+
+    return {
+        ocmId: ocmCharger.ID,
+        connections: connections,
+        network: network,
+        address: {
+            title: ocmCharger.AddressInfo.Title,
+            addressLine1: ocmCharger.AddressInfo.AddressLine1,
+            addressLine2: ocmCharger.AddressInfo.AddressLine2,
+            town: ocmCharger.AddressInfo.Town,
+            stateOrProvince: ocmCharger.AddressInfo.StateOrProvince,
+            postcode: ocmCharger.AddressInfo.Postcode,
+            country: ocmCharger.AddressInfo.Country.ISOCode,                    
+            latitude: ocmCharger.AddressInfo.Latitude,
+            longitude: ocmCharger.AddressInfo.Longitude,
+        },
+        ocm: {
+            id: ocmCharger.ID,
+            uuid: ocmCharger.UUID,
+            dateCreated: ocmCharger.DateCreated,
+            dateLastStatusUpdate: ocmCharger.DateLastStatusUpdate
+        }
+    };
+}
