@@ -27,11 +27,4 @@ class ValidationResult {
     }
 }
 
-class ValidationError {
-    constructor(propertyName, error){
-
-    }
-
-}
-
 module.exports = new ModelValidator();

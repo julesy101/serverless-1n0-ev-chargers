@@ -25,8 +25,11 @@ module.exports.checkLatest = async(event) => {
         let chargersToAdd = [];
         for(let i = 0; i < ocmChargers.length; i++){
             let ocmCharger = ocmChargers[i];
+            if(ocmCharger === null)
+                continue;
+            
             let transformedOcmEntity = ocmMapper(ocmCharger);
-            if(ocmCharger == null)
+            if(transformedOcmEntity === null)
                 continue;
             
             chargersToAdd.push(new Charger(transformedOcmEntity));

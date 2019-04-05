@@ -53,11 +53,11 @@ class ChargerConnection {
 module.exports = Charger;
 module.exports.transformOcmEntity = (ocmCharger) => {
     let connections = [];
-    if(!ocmCharger.ID)
+    if(!ocmCharger.ID || !ocmCharger.Connections)
         return null;
 
     for(let x = 0; x < ocmCharger.Connections.length; x++){
-        if(ocmCharger.Connections[x].CurrentType && ocmCharger.Connections[x].ConnectionType){
+        if(ocmCharger.Connections[x].CurrentType.Title && ocmCharger.Connections[x].ConnectionType.Title){
             connections.push({
                 type: ocmCharger.Connections[x].ConnectionType.Title,                    
                 kw: ocmCharger.Connections[x].PowerKW,

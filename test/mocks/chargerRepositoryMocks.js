@@ -3,12 +3,12 @@ const Charger = require("../../charger")
 const ocmMapper = require("../../charger").transformOcmEntity;
 
 class MockRepositoryResults {
-    ocmChargers(idToInclude) {
+    ocmChargers(idsToInclude) {
         let finals = [];
         let chargers = JSON.parse(responseMocks.standardResponse).map(z => ocmMapper(z));
         for(let i = 0; i < chargers.length; i++){
             if(chargers[i]){
-                if(idToInclude === chargers[i].ocmId){
+                if(idsToInclude === chargers[i].ocmId){
                     chargers.id = "charger-id-" + i;
                     chargers.created = new Date().getTime();
                     chargers.updated = new Date().getTime();
