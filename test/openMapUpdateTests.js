@@ -6,7 +6,7 @@ const ChargerRepository = require('../db/repository').ChargerRepository
 const ocmResponses = require('./mocks/ocmResponseMocks');
 const repoMocks = require('./mocks/chargerRepositoryMocks');
 
-describe("open charge map sync lambda", () => {
+describe("open charge map update lambda", () => {
     let addChargerFake;
     let updateChargerFake;
 

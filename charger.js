@@ -8,7 +8,7 @@ class Charger {
         this.network;
         this.address;
         this.ocm;
-
+        
         if(dbEntity)
         {
             let expConn = [];
@@ -19,6 +19,18 @@ class Charger {
             dbEntity.connections = expConn;
             Object.assign(this, dbEntity);
         }
+    }
+
+    get networkName() {
+        return this.network.title;
+    }
+
+    get town(){
+        return address.town;
+    }
+
+    get postcode() {
+        return address.postcode;
     }
 
     get maxPower() {
@@ -57,6 +69,9 @@ module.exports.transformOcmEntity = (ocmCharger) => {
         return null;
 
     for(let x = 0; x < ocmCharger.Connections.length; x++){
+        if(!ocmCharger.Connections[x].CurrentType || !ocmCharger.Connections[x].ConnectionType)
+            continue;
+        
         if(ocmCharger.Connections[x].CurrentType.Title && ocmCharger.Connections[x].ConnectionType.Title){
             connections.push({
                 type: ocmCharger.Connections[x].ConnectionType.Title,                    
@@ -65,6 +80,7 @@ module.exports.transformOcmEntity = (ocmCharger) => {
             });
         }
     }
+
     let network = null;
     if(ocmCharger.OperatorInfo){
         network = {

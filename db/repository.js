@@ -1,6 +1,6 @@
 const dynamoDb = require("./dynamoDb");
 const uuid =  require('uuid');
-
+const partioner = require('../utilities/arrayPartitioner');
 class ChargerRepository {
     constructor(){
         this._mostRecentStatId = "OCM-MOST-RECENT"
@@ -47,6 +47,37 @@ class ChargerRepository {
         return;
     }
 
+    async getChargers(ids) {
+        if(!ids || ids.length === 0)
+        return [];
+    
+        let batchedGets = [];
+        let partitionedIds = partioner(ids, 100);
+        partitionedIds.forEach((partioned) => {
+            let keys = [];
+            partioned.forEach(key => {
+                keys.push({
+                    "id": key.S
+                });
+            });
+            let requestItems = {};
+            requestItems[process.env.DYNAMODB_TABLE_CHARGER] = {
+                Keys: keys
+            };
+            let params = {
+                RequestItems: requestItems
+            }
+
+            batchedGets.push(dynamoDb.batchGet(params).promise());
+        });
+        let result = await Promise.all(batchedGets);
+
+        let all = result.map(x => x.Responses && x.Responses[process.env.DYNAMODB_TABLE_CHARGER]);
+        let flat = [];
+        all.forEach(x => x.forEach(z => flat.push(z)));
+        return flat;
+    }
+
     async getOcmCharger(ocmId){
         let params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
@@ -82,7 +113,7 @@ class ChargerRepository {
     }
 
     async updateCharger(charger) {
-        if(!charger.id && charger.id !== "")
+        if(!charger.id || charger.id !== "")
             throw new Error("id must be provided to update charger");
 
         let timestamp = new Date().getTime();

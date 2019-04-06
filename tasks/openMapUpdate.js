@@ -1,6 +1,6 @@
 const Charger = require("../charger")
 const requestWrapper = require('../utilities/request-wrapper');
-const chargerRepository = require("../db/repository")
+const chargerRepository = require("../db/geoEnabledRepository")
 const ocmMapper = require("../charger").transformOcmEntity;
 const ocmUrl = "https://api.openchargemap.io/v3/poi/?output=json";
 
@@ -15,7 +15,9 @@ module.exports.checkLatest = async(event) => {
         // if lmd is populated we will limit the
         // query to save unnecessary processing:
         // expected format: yyyy-mm-dd
-        queryUrl = `${queryUrl}&modifiedsince=${new Date(lmd).toISOString()}`
+        let lmdNative = new Date(lmd);
+        lmdNative.setMinutes(lmdNative.getMinutes() + 1);
+        queryUrl = `${queryUrl}&modifiedsince=${new Date(lmdNative).toISOString()}`
     }
     console.log(`querying: ${queryUrl}`);
     // make the network call:

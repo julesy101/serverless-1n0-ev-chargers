@@ -6,6 +6,7 @@ provider:
   environment:
     DYNAMODB_TABLE_CHARGER: ${self:service}-${opt:stage, self:provider.stage}
     DYNAMODB_TABLE_CHARGER_STATS: ${self:service}-stats-${opt:stage, self:provider.stage}
+    DYNAMODB_TABLE_CHARGER_GEO: ${self:service}-geo-${opt:stage, self:provider.stage}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -25,18 +26,27 @@ provider:
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_CHARGER_STATS}"
-
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_CHARGER_GEO}"
 functions:
   openMapUpdate:
     handler: tasks/openMapUpdate.checkLatest
     environment:
       COUNTRY: GB
       MAXRESULTS: 10000
+      GEOHASHLENGTH: 7
     events:
       - schedule:
           name: timed-open-map-check
           description: a timed check against open maps db
-          rate: rate(3 minutes)
+          rate: rate(5 minutes)
           enabled: true
           input:
             stageParams:
@@ -75,12 +85,26 @@ functions:
                 { 
                   "id" : "$input.params('id')" 
                 }
-
+  geoSearchCharger:
+    handler: handlers/geo.geoLookup
+    events:
+      - http:
+          path: chargers/geo/{lat}/{lng}/{radius}
+          method: get
+          integration: lambda
+          request:
+            template:
+              application/json: >
+                { 
+                  "lat" : "$input.params('lat')",
+                  "lng" : "$input.params('lng')" ,
+                  "radius" : "$input.params('radius')"  
+                }
 resources:
   Resources:
     ChargersTable:
       Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Delete
+      DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
           -
@@ -89,6 +113,15 @@ resources:
           -
             AttributeName: ocmId
             AttributeType: N
+          -
+            AttributeName: networkName
+            AttributeType: S
+          -
+            AttributeName: town
+            AttributeType: S
+          -
+            AttributeName: postcode
+            AttributeType: S
         KeySchema:
           -
             AttributeName: id
@@ -103,13 +136,40 @@ resources:
             ProvisionedThroughput:
               ReadCapacityUnits: 10
               WriteCapacityUnits: 10
+          - IndexName: NetworkNames
+            KeySchema:
+            - AttributeName: networkName
+              KeyType: HASH
+            Projection:
+              ProjectionType: KEYS_ONLY
+            ProvisionedThroughput:
+              ReadCapacityUnits: 10
+              WriteCapacityUnits: 10
+          - IndexName: Towns
+            KeySchema:
+            - AttributeName: town
+              KeyType: HASH
+            Projection:
+              ProjectionType: KEYS_ONLY
+            ProvisionedThroughput:
+              ReadCapacityUnits: 10
+              WriteCapacityUnits: 10
+          - IndexName: Postcodes
+            KeySchema:
+            - AttributeName: postcode
+              KeyType: HASH
+            Projection:
+              ProjectionType: KEYS_ONLY
+            ProvisionedThroughput:
+              ReadCapacityUnits: 10
+              WriteCapacityUnits: 10
         ProvisionedThroughput:
           ReadCapacityUnits: 10
           WriteCapacityUnits: 10
         TableName: ${self:provider.environment.DYNAMODB_TABLE_CHARGER}
     ChargersStatsTable:
       Type: 'AWS::DynamoDB::Table'
-      DeletionPolicy: Delete
+      DeletionPolicy: Retain
       Properties:
         AttributeDefinitions:
           -
@@ -123,6 +183,43 @@ resources:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
         TableName: ${self:provider.environment.DYNAMODB_TABLE_CHARGER_STATS}
+    ChargersGeoTable:
+      Type: 'AWS::DynamoDB::Table'
+      DeletionPolicy: Retain
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: hashKey
+            AttributeType: N
+          -
+            AttributeName: rangeKey
+            AttributeType: S
+          -
+            AttributeName: geohash
+            AttributeType: N
+        KeySchema:
+          -
+            AttributeName: hashKey
+            KeyType: HASH
+          -
+            AttributeName: rangeKey
+            KeyType: RANGE
+        LocalSecondaryIndexes:
+          -
+            IndexName: geohash-index
+            KeySchema:
+              -
+                AttributeName: hashKey
+                KeyType: HASH
+              -
+                AttributeName: geohash
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+        ProvisionedThroughput:
+          ReadCapacityUnits: 10
+          WriteCapacityUnits: 5
+        TableName: ${self:provider.environment.DYNAMODB_TABLE_CHARGER_GEO}
 
 custom: 
   dynamodb:
@@ -147,8 +244,8 @@ custom:
         url: "http://www.1and0.co.uk/licensing"
     tags:
       -
-        name: "EV"
-        description: "Electric Vehicles"
+        name: "EV Chargers"
+        description: "Electric Vehicle Chargers"
     resources:
       -
         path: "chargers/add"

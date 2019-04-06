@@ -10,3 +10,4 @@ if (process.env.IS_OFFLINE) {
 }
 options.convertEmptyValues = true
 module.exports = new AWS.DynamoDB.DocumentClient(options);
+module.exports.DynamoDB = new AWS.DynamoDB(options);
