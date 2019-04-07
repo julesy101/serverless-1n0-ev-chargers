@@ -1,6 +1,8 @@
 const dynamoDb = require("./dynamoDb");
 const uuid =  require('uuid');
 const partioner = require('../utilities/arrayPartitioner');
+
+
 class ChargerRepository {
     constructor(){
         this._mostRecentStatId = "OCM-MOST-RECENT"
@@ -32,6 +34,9 @@ class ChargerRepository {
     }
 
     async getCharger(id){
+        if(!id || id === "")
+            return;
+
         let params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
             Key: {
@@ -57,7 +62,7 @@ class ChargerRepository {
             let keys = [];
             partioned.forEach(key => {
                 keys.push({
-                    "id": key.S
+                    "id": key
                 });
             });
             let requestItems = {};
@@ -113,7 +118,7 @@ class ChargerRepository {
     }
 
     async updateCharger(charger) {
-        if(!charger.id || charger.id !== "")
+        if(!charger.id || charger.id === "")
             throw new Error("id must be provided to update charger");
 
         let timestamp = new Date().getTime();

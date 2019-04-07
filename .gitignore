@@ -6,3 +6,5 @@ jspm_packages
 .serverless
 .dynamodb
 .webpack
+.nyc_output
+coverage

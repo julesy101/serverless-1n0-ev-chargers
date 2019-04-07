@@ -47,7 +47,7 @@ class GeoEnabledChargerRepository extends ChargerRepository {
             }
         });
         if(records && records.length > 0){
-            let ids = records.map(x => x.id);
+            let ids = records.map(x => x.id.S);
             return await super.getChargers(ids);
         }
         return;
@@ -55,3 +55,4 @@ class GeoEnabledChargerRepository extends ChargerRepository {
 }
 
 module.exports = new GeoEnabledChargerRepository();
+module.exports.GeoChargerRepository = GeoEnabledChargerRepository;

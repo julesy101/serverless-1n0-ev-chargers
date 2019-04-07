@@ -2,9 +2,10 @@ const sinon = require('sinon');
 const expect = require('chai').use(require('sinon-chai')).expect;
 const RequestWrapper = require('../utilities/request-wrapper').RequestWrapper;
 const checkLatest = require('../tasks/openMapUpdate').checkLatest;
-const ChargerRepository = require('../db/repository').ChargerRepository
+const ChargerRepository = require('../db/geoEnabledRepository').GeoChargerRepository
 const ocmResponses = require('./mocks/ocmResponseMocks');
 const repoMocks = require('./mocks/chargerRepositoryMocks');
+const logger = require('../utilities/logger');
 
 describe("open charge map update lambda", () => {
     let addChargerFake;
@@ -36,7 +37,7 @@ describe("open charge map update lambda", () => {
                            .callsFake(() => Promise.resolve(ocmResponses.standardResponse))
         
         await checkLatest();
-        expect(ocmFake).to.be.calledOnceWith('https://api.openchargemap.io/v3/poi/?output=json&countrycode=GB&verbose=false&maxresults=10&modifiedsince=2019-04-01T23:00:00.000Z');
+        expect(ocmFake).to.be.calledOnceWith('https://api.openchargemap.io/v3/poi/?output=json&countrycode=GB&verbose=false&maxresults=10&modifiedsince=2019-04-01T23:01:00.000Z');
     });
     it("no chargers returned bypasses processing", async () => {
         sinon.stub(ChargerRepository.prototype, 'openChargeMapLastModifiedDate')
@@ -179,6 +180,7 @@ describe("open charge map update lambda", () => {
     });
 
     beforeEach(() => {
+        process.env.TEST = "true";
         process.env.COUNTRY = "GB";
         process.env.MAXRESULTS = "10";
         // stub the repo layer to return an empty db:
@@ -188,6 +190,7 @@ describe("open charge map update lambda", () => {
                                  .callsFake((charger) => repoMocks.updateCharger(charger));
     });
     afterEach(() => {
+        delete process.env.TEST;
         delete process.env.COUNTRY;
         delete process.env.MAXRESULTS;
 

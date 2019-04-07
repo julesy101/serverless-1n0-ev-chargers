@@ -2,15 +2,15 @@ const repository = require("../db/geoEnabledRepository");
 const responses = require("../utilities/responses");
 
 module.exports.geoLookup = async (event, context) => {
-    if(!event.lat || !event.lng)
-        return responses.badRequest();
-
+    let lat = Number.parseFloat(event.lat);
+    let lng = Number.parseFloat(event.lng);
     let radius = 1000;
     if(event.radius)
-        radius = event.radius;
-    let results = await repository.radiusSearch(event.lat, event.lng, radius)
+        radius = Number.parseFloat(event.radius);
+
+    let results = await repository.radiusSearch(lat, lng, radius)
     if(!results)
         responses.notFound();
-    
+        
     return responses.ok(results);
 };
