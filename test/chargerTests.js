@@ -1,5 +1,5 @@
 const assert = require('chai').assert;
-const Charger = require('../charger')
+const Charger = require('../entities/charger')
 
 const splitConnections = [{ 
     type: "CCS", 

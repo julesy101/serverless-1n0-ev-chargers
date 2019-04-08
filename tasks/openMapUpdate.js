@@ -1,8 +1,8 @@
-const Charger = require("../charger")
+const Charger = require("../entities/charger")
 const requestWrapper = require('../utilities/request-wrapper');
 const debug = require('../utilities/logger').debug;
 const chargerRepository = require("../db/geoEnabledRepository")
-const ocmMapper = require("../charger").transformOcmEntity;
+const ocmMapper = require("../entities/charger").transformOcmEntity;
 const ocmUrl = "https://api.openchargemap.io/v3/poi/?output=json";
 const PromiseThrottle = require('promise-throttle');
 

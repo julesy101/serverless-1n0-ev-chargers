@@ -1,6 +1,6 @@
 const responseMocks = require('./ocmResponseMocks');
-const Charger = require("../../charger")
-const ocmMapper = require("../../charger").transformOcmEntity;
+const Charger = require("../../entities/charger")
+const ocmMapper = require("../../entities/charger").transformOcmEntity;
 
 class MockRepositoryResults {
     ocmChargers(idsToInclude) {

@@ -3,8 +3,8 @@ const sinon = require('sinon');
 const expect = require('chai').use(require('sinon-chai')).use(require('chai-as-promised')).expect;
 const ChargerRepository = require('../db/repository').ChargerRepository;
 const responseMocks = require('./mocks/ocmResponseMocks');
-const ocmMapper = require("../charger").transformOcmEntity;
-const Charger = require("../charger");
+const ocmMapper = require("../entities/charger").transformOcmEntity;
+const Charger = require("../entities/charger");
 
 describe("dynamo db charger repository", () => {
     let putFake;
