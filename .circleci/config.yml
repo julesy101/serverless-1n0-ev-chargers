@@ -9,9 +9,21 @@ jobs:
       - run:
           name: Install Dependencies
           command: npm install
+      - run: npm install mocha-junit-reporter # just for CircleCI
+      - run: mkdir reports
       - run:
-          name: Unit Tests
-          command: npm test
+          name: npm test
+          command: ./node_modules/.bin/nyc ./node_modules/.bin/mocha --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml
+          when: always
+      - run:
+          name: code-coverage
+          command: |
+                    mkdir coverage
+                    # nyc report requires that nyc has already been run,
+                    # which creates the .nyc_output folder containing necessary data
+                    ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
+                    ./cc-test-reporter after-build -t lcov
+          when: always
       - run:
           name: Install PIP
           command: sudo apt-get install python-pip python-dev
@@ -21,3 +33,10 @@ jobs:
       - run:
           name: Deploy
           command: npm run deploy
+      - store_test_results:
+          path: reports
+      - store_artifacts:
+          path: ./reports/mocha/test-results.xml
+      - store_artifacts: # upload test coverage as artifact
+          path: ./coverage/lcov.info
+          prefix: tests

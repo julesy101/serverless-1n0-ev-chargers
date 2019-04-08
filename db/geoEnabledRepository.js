@@ -39,6 +39,9 @@ class GeoEnabledChargerRepository extends ChargerRepository {
     }
 
     async radiusSearch(lat, lng, radius){
+        if(isNaN(lat) || isNaN(lng) || isNaN(radius))
+            throw new Error("lat, lng & radius need to be numbers");
+
         let records = await this._geoManager.queryRadius({
             RadiusInMeter: radius,
             CenterPoint: {
