@@ -5,9 +5,9 @@ const dynamoDb = require('./dynamoDb').DynamoDB;
 class GeoEnabledChargerRepository extends ChargerRepository {
     constructor(){
         super();
-        let geoConf = new dynamoGeo.GeoDataManagerConfiguration(dynamoDb, process.env.DYNAMODB_TABLE_CHARGER_GEO);
-        geoConf.hashKeyLength = Number(process.env.GEOHASHLENGTH);
-        this._geoManager = new dynamoGeo.GeoDataManager(geoConf);     
+        this.geoConf = new dynamoGeo.GeoDataManagerConfiguration(dynamoDb, process.env.DYNAMODB_TABLE_CHARGER_GEO);
+        this.geoConf.hashKeyLength = Number.parseInt(process.env.GEOHASHLENGTH);
+        this._geoManager = new dynamoGeo.GeoDataManager(this.geoConf);     
     }
 
     async addCharger(charger){  

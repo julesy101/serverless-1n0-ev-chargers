@@ -16,6 +16,7 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
+        - dynamodb:BatchGetItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_CHARGER}"
     - Effect: Allow
       Action: 
@@ -30,6 +31,7 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
+        - dynamodb:BatchGetItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_CHARGER_STATS}"
     - Effect: Allow
       Action:
@@ -39,6 +41,7 @@ provider:
         - dynamodb:PutItem
         - dynamodb:UpdateItem
         - dynamodb:DeleteItem
+        - dynamodb:BatchGetItem
       Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE_CHARGER_GEO}"
     - Effect: Allow
       Action: 
@@ -100,6 +103,8 @@ functions:
                 }
   geoSearchCharger:
     handler: handlers/geo.geoLookup
+    environment:
+      GEOHASHLENGTH: 7
     events:
       - http:
           path: chargers/geo/{lat}/{lng}/{radius}
