@@ -1,17 +1,17 @@
 version: 2
 jobs:
   build:
-docker:
+    docker:
       - image: circleci/node:8
-working_directory: ~/repo
-steps:
+    working_directory: ~/repo
+    steps:
       - checkout
-- run:
+      - run:
           name: Install Dependencies
           command: npm install
-- run:
+      - run:
           name: Unit Tests
           command: npm test
-- run:
+      - run:
           name: Deploy
           command: npm run deploy
