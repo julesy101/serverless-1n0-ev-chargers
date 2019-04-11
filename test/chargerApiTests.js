@@ -2,6 +2,8 @@ const sinon = require('sinon');
 const expect = require('chai').use(require('sinon-chai')).use(require('chai-as-promised')).expect;
 const ChargerApiSdk = require('../sdk/chargersApi');
 const RequestWrapper = require('../utilities/request-wrapper').RequestWrapper;
+const responseMocks = require('./mocks/ocmResponseMocks');
+const ocmMapper = require("../entities/charger").transformOcmEntity;
 
 describe("charger external sdk", () => {
     it("rejects an invalid add charger model before calling the endpoint", async () => {
@@ -26,7 +28,9 @@ describe("charger external sdk", () => {
         })).to.be.rejectedWith(Error);
     });
     it("rejects an update charger model without and id populated", () => {
+        let api = new ChargerApiSdk();
 
+        expect(api.updateCharger())
     });
     it("rejects an update model with invalid field types", () => {
 
