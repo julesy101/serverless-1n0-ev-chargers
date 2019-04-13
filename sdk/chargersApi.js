@@ -14,7 +14,7 @@ class ChargerApiSdk {
         if(!chargerId || chargerId === '')
             throw new Error("charger id must be provided");
         
-        return _buildChargerFromResponse(await rp.get(`${this.baseUrl}/chargers/fetch/${chargerId}`));
+        return this._buildChargerFromResponse(await rp.get(`${this.baseUrl}/chargers/fetch/${chargerId}`));
     }
 
     async searchChargerByCoordinates(lat, lng, radius){
@@ -25,21 +25,21 @@ class ChargerApiSdk {
             throw new Error("radius must be 1000m or more");
         
         let chargers = await rp.get(`${this.baseUrl}/chargers/geo/${lat}/${lng}/${radius}`);
-        return chargers.map(x => _buildChargerFromResponse(x));
+        return chargers.map(x => this._buildChargerFromResponse(x));
     }
     
     async addCharger(charger) {
         let validationResult = modelValidator.validate(charger, "addChargerModel");
         if(validationResult.valid)
-            return _buildChargerFromResponse(await rp.put(`${this.baseUrl}/chargers/add`, charger));
+            return this._buildChargerFromResponse(await rp.put(`${this.baseUrl}/chargers/add`, charger));
         else
             throw new Error("invalid model");
     }
 
     async updateCharger(charger) {
-        let validationResult = model.Validator.validate(charger, "updateChargerModel");
+        let validationResult = modelValidator.validate(charger, "updateChargerModel");
         if(validationResult.valid)
-            return _buildChargerFromResponse(await rp.post(`${this.baseUrl}/chargers/update`, charger));
+            return this._buildChargerFromResponse(await rp.post(`${this.baseUrl}/chargers/update`, charger));
         else 
             throw new Error("invalid model");
     }

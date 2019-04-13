@@ -1,9 +1,11 @@
 const sinon = require('sinon');
 const expect = require('chai').use(require('sinon-chai')).use(require('chai-as-promised')).expect;
 const ChargerApiSdk = require('../sdk/chargersApi');
+const Charger = require('../entities/charger');
 const RequestWrapper = require('../utilities/request-wrapper').RequestWrapper;
 const crp = require('./mocks/chargerRepositoryMocks');
-describe("charger external sdk", () => {
+
+describe('charger external sdk', () => {
     it("rejects an invalid add charger model before calling the endpoint", async () => {
         let rputFake = sinon.stub(RequestWrapper.prototype, 'put').callsFake((url, body) => {});
         let api = new ChargerApiSdk();
@@ -18,12 +20,20 @@ describe("charger external sdk", () => {
         }
         expect(rputFake).to.not.be.called;
     });
-    it("add charger throws an error if model not valid", () => {
+    it("addCharger throws an error if model not valid", () => {
         let api = new ChargerApiSdk();
         expect(api.addCharger({
             notValidKey: "this isnt a valid key",
             notValidCharger: "this isnt a valid charger"
         })).to.be.rejectedWith(Error);
+    });
+    it("addCharger returns a concrete instance of Charger", async () => {
+        sinon.stub(RequestWrapper.prototype, 'put').callsFake(() => {
+            return Promise.resolve(crp.rawSerializedChargers()[0]);
+        });
+        let api = new ChargerApiSdk();
+        let charger = await api.addCharger(crp.addChargerModelInput());
+        expect(charger).to.be.instanceOf(Charger);
     });
     it("rejects an update charger model without an id populated", () => {
         let api = new ChargerApiSdk();
@@ -39,6 +49,24 @@ describe("charger external sdk", () => {
 
         expect(api.updateCharger(dummyC)).to.be.rejectedWith(Error);
     });
+    it("updateCharger with valid model issues a post to the api", async () => {
+        let postFake = sinon.stub(RequestWrapper.prototype, 'post').callsFake(() => {
+            return Promise.resolve(crp.rawSerializedChargers()[0]);
+        });
+        let api = new ChargerApiSdk();
+        await api.updateCharger(crp.rawSerializedChargers()[0]);
+
+        expect(postFake).to.be.called;
+    });
+    it("updateCharger with valid model returns an instance of Charger", async () => {
+        sinon.stub(RequestWrapper.prototype, 'post').callsFake(() => {
+            return Promise.resolve(crp.rawSerializedChargers()[0]);
+        });
+        let api = new ChargerApiSdk();
+        let charger = await api.updateCharger(crp.rawSerializedChargers()[0]);
+
+        expect(charger).to.be.instanceOf(Charger);
+    });
     it("no options passed creates an api proxy with process env APIBASEURL utilised", () => {
         let api = new ChargerApiSdk();
         expect(api.baseUrl).to.be.equal("http://baseUrl.com/dev")
@@ -49,21 +77,68 @@ describe("charger external sdk", () => {
     });
     it("searchByCoordinates rejects non number lat, lng or radius", () => {
         let api = new ChargerApiSdk();
-        expect(api.searchChargerByCoordinates("not lat", -0.343, 10)).to.be.rejectedWith(Error);
-        expect(api.searchChargerByCoordinates(57.675, "not lng", 10)).to.be.rejectedWith(Error);
+        expect(api.searchChargerByCoordinates("not lat", -0.343, 1000)).to.be.rejectedWith(Error);
+        expect(api.searchChargerByCoordinates(57.675, "not lng", 1000)).to.be.rejectedWith(Error);
         expect(api.searchChargerByCoordinates(57.675, -0.343, "not rad")).to.be.rejectedWith(Error);
     });
-    it("getCharger rejects empty string or null string as  parameter", () => {
+    it("searchByCoordinates rejects a radius < 1000", () => {
+        let api = new ChargerApiSdk();
+        expect(api.searchChargerByCoordinates(57.345, -0.343, 10)).to.be.rejectedWith(Error);
+    });
+    it("searchByCoordinates returns all instances as Chargers", async () => {
+        let gcFake = sinon.stub(RequestWrapper.prototype, 'get').callsFake(() => {
+            return Promise.resolve(crp.rawSerializedChargers());
+        });
+        let api = new ChargerApiSdk();
+        let chargers = await api.searchChargerByCoordinates(57.034, -0.345, 1500);
+        chargers.forEach(charger => {
+            expect(charger).to.be.instanceOf(Charger);
+        });
+    });
+    it("getCharger rejects empty string or null as a parameter", () => {
         let api = new ChargerApiSdk();
         expect(api.getCharger("")).to.be.rejectedWith(Error);
         expect(api.getCharger(null)).to.be.rejectedWith(Error);
-    })
+    });
+    it("getCharger returns a concrete instance of Charger", async () => {
+        let gcFake = sinon.stub(RequestWrapper.prototype, 'get').callsFake(() => {
+            return Promise.resolve(crp.rawSerializedChargers()[0]);
+        });
+        let api = new ChargerApiSdk();
+        let charger = await api.getCharger("some_id");
+        expect(charger).to.be.instanceOf(Charger);
+    });
+    it("deleteCharger rejects an empty string or null for charger id", () => {
+        let api = new ChargerApiSdk();
+        expect(api.deleteCharger("")).to.be.rejectedWith(Error);
+        expect(api.deleteCharger(null)).to.be.rejectedWith(Error);
+    });
+    it("deleteCharger issues a delete to the charger endpoint", async () => {
+        let dlFake = sinon.stub(RequestWrapper.prototype, 'delete').callsFake(() => {
+            return Promise.resolve();
+        });
+        let api = new ChargerApiSdk();
+        await api.deleteCharger("some_id");
 
+        expect(dlFake).to.be.called;
+        expect(dlFake.getCall(0).args[0]).to.be.equal("http://baseUrl.com/dev/chargers/delete/some_id")
+    });
     beforeEach(() => {
         process.env.APIBASEURL = "http://baseUrl.com/dev"
-    })
+    });
 
     afterEach(() => {
         delete process.env.APIBASEURL;
-    })
+        if(RequestWrapper.prototype.get.restore)
+            RequestWrapper.prototype.get.restore();
+
+        if(RequestWrapper.prototype.put.restore)
+            RequestWrapper.prototype.put.restore();
+        
+        if(RequestWrapper.prototype.post.restore)
+            RequestWrapper.prototype.post.restore();
+        
+        if(RequestWrapper.prototype.delete.restore)
+            RequestWrapper.prototype.delete.restore();
+    });
 });

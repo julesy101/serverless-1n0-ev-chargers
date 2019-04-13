@@ -1,7 +1,7 @@
 const dynamoDb = require("./dynamoDb");
 const uuid =  require('uuid');
 const partioner = require('../utilities/arrayPartitioner');
-
+const Charger = require('../entities/charger');
 
 class ChargerRepository {
     constructor(){
@@ -47,7 +47,7 @@ class ChargerRepository {
         let item = await dynamoDb.get(params)
                                  .promise();
         if(item.Item)
-            return item.Item;
+            return new Charger(item.Item);
         
         return;
     }
@@ -79,7 +79,7 @@ class ChargerRepository {
 
         let all = result.map(x => x.Responses && x.Responses[process.env.DYNAMODB_TABLE_CHARGER]);
         let flat = [];
-        all.forEach(x => x.forEach(z => flat.push(z)));
+        all.forEach(x => x.forEach(z => flat.push(new Charger(z))));
         return flat;
     }
 
@@ -95,7 +95,7 @@ class ChargerRepository {
 
         let item = await dynamoDb.query(params).promise();
         if(item.Items && item.Items.length > 0)
-            return item.Items[0];
+            return new Charger(item.Items[0]);
         
             return null;
     }
@@ -114,7 +114,7 @@ class ChargerRepository {
         await dynamoDb.put(params)
                       .promise();
 
-        return charger;
+        return new Charger(charger);
     }
 
     async updateCharger(charger) {
@@ -132,7 +132,7 @@ class ChargerRepository {
         await dynamoDb.put(params)
                       .promise();
 
-        return charger;
+        return new Charger(charger);
     }
 
     async deleteCharger(charger){

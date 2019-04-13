@@ -1,5 +1,5 @@
 const rp = require('request-promise-native');
-
+/* istanbul ignore next */
 class RequestWrapper {
     get(url){
         return rp(url);

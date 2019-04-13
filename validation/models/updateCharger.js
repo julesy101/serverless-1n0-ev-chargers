@@ -14,7 +14,7 @@ module.exports = {
         "network": { "$ref": "#/definitions/network"},
         "address": { "$ref": "#/definitions/address"},
         "ocm": { "$ref": "#/definitions/ocm"},
-        "ocmId": { "type": "string" }
+        "ocmId": { "type": "number" }
     },
     "required": ["connections", "network", "address", "ocm", "ocmId"],
     "definitions": {
@@ -55,7 +55,7 @@ module.exports = {
         "ocm": {
             "type": "object",
             "properties": {
-                "id": { "type": "string" },                
+                "id": { "type": "number" },                
                 "uuid": { "type": "string" },
                 "dateCreated": { "type": "string" },
                 "dateLastStatusUpdate": { "type": "string" }

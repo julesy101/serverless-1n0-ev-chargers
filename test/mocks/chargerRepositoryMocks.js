@@ -3,6 +3,20 @@ const Charger = require("../../entities/charger")
 const ocmMapper = require("../../entities/charger").transformOcmEntity;
 
 class MockRepositoryResults {
+    addChargerModelInput() {
+        let charger = JSON.parse(responseMocks.standardResponse).map(z => ocmMapper(z))[0];
+        return charger;
+    }
+    
+    rawSerializedChargers() {
+        let chargers = JSON.parse(responseMocks.standardResponse).map(z => ocmMapper(z));
+        chargers.forEach((charger, idx) => {
+            charger.id = "charger-id-" + idx;
+            charger.created = new Date().getTime();
+            charger.updated = new Date().getTime();
+        });
+        return chargers;
+    }
     allChargers(){
         let chargers = JSON.parse(responseMocks.standardResponse).map(z => ocmMapper(z));
         let final = [];

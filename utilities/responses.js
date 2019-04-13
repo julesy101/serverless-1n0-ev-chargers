@@ -62,3 +62,11 @@ class GatewayTimeoutError extends Error {
 }
 
 module.exports = new Responses();
+module.exports.BadRequestError = BadRequestError;
+module.exports.FileNotFoundError = FileNotFoundError;
+module.exports.UnauthorizedError = UnauthorizedError;
+module.exports.ForbiddenError = ForbiddenError;
+module.exports.UnprocessableEntityError = UnprocessableEntityError;
+module.exports.InternalServerError = InternalServerError;
+module.exports.BadGatewayError = BadGatewayError;
+module.exports.GatewayTimeoutError = GatewayTimeoutError;
