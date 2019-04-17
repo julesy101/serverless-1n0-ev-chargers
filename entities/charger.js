@@ -1,22 +1,29 @@
+class ChargerConnection {
+    constructor(type, kw, currentType) {
+        this.type = type;
+        this.kw = kw;
+        this.currentType = currentType;
+    }
+}
+
 class Charger {
-    constructor(dbEntity){        
-        this.id;
-        this.ocmId;
-        this.created;
-        this.updated;
+    constructor(dbEntity) {
+        this.id = null;
+        this.ocmId = null;
+        this.ocmId = null;
+        this.created = null;
+        this.updated = null;
         this.connections = [];
-        this.network;
-        this.address;
-        this.ocm;
-        
-        if(dbEntity)
-        {
-            let expConn = [];
-            for(let i = 0; i < dbEntity.connections.length; i++){
-                let itm = dbEntity.connections[i];
+        this.network = null;
+        this.address = null;
+        this.ocm = null;
+
+        if (dbEntity) {
+            const expConn = [];
+            dbEntity.connections.forEach(itm => {
                 expConn.push(new ChargerConnection(itm.type, itm.kw, itm.currentType));
-            }
-            dbEntity.connections = expConn;
+            });
+            this.connections = expConn;
             Object.assign(this, dbEntity);
         }
     }
@@ -25,20 +32,19 @@ class Charger {
         return this.network.title;
     }
 
-    get town(){
-        return address.town;
+    get town() {
+        return this.address.town;
     }
 
     get postcode() {
-        return address.postcode;
+        return this.address.postcode;
     }
 
     get maxPower() {
         let maxpower = 0;
-        for(let i = 0; i < this.connections.length; i++){
-            if(this.connections[i].kw > maxpower)
-                maxpower = this.connections[i].kw;
-        }
+        this.connections.forEach(connection => {
+            if (connection.kw > maxpower) maxpower = connection.kw;
+        });
         return maxpower;
     }
 
@@ -46,47 +52,33 @@ class Charger {
         return this.connections.length;
     }
 
-    get currentTypes(){
-        return this.connections.map(x => x.currentType)
-                               .filter((v,i,s) => s.indexOf(v) === i);
-    }
-}
-
-class ChargerConnection {
-    constructor(type, 
-                kw, 
-                currentType) {
-        this.type = type;     
-        this.kw = kw;
-        this.currentType = currentType;
+    get currentTypes() {
+        return this.connections.map(x => x.currentType).filter((v, i, s) => s.indexOf(v) === i);
     }
 }
 
 module.exports = Charger;
-module.exports.transformOcmEntity = (ocmCharger) => {
-    let connections = [];
-    if(!ocmCharger.ID || !ocmCharger.Connections)
-        return null;
+module.exports.transformOcmEntity = ocmCharger => {
+    const connections = [];
+    if (!ocmCharger.ID || !ocmCharger.Connections) return null;
+    ocmCharger.Connections.forEach(conn => {
+        if (!conn.CurrentType || !conn.ConnectionType) return;
 
-    for(let x = 0; x < ocmCharger.Connections.length; x++){
-        if(!ocmCharger.Connections[x].CurrentType || !ocmCharger.Connections[x].ConnectionType)
-            continue;
-        
-        if(ocmCharger.Connections[x].CurrentType.Title && ocmCharger.Connections[x].ConnectionType.Title){
+        if (conn.CurrentType.Title && conn.ConnectionType.Title) {
             connections.push({
-                type: ocmCharger.Connections[x].ConnectionType.Title,                    
-                kw: ocmCharger.Connections[x].PowerKW,
-                currentType: ocmCharger.Connections[x].CurrentType.Title
+                type: conn.ConnectionType.Title,
+                kw: conn.PowerKW,
+                currentType: conn.CurrentType.Title
             });
         }
-    }
+    });
 
     let network = null;
-    if(ocmCharger.OperatorInfo){
+    if (ocmCharger.OperatorInfo) {
         network = {
             websiteURL: ocmCharger.OperatorInfo.WebsiteURL,
-            isPrivateIndividual: ocmCharger.OperatorInfo.IsPrivateIndividual,     
-            contactEmail: ocmCharger.OperatorInfo.ContactEmail,              
+            isPrivateIndividual: ocmCharger.OperatorInfo.IsPrivateIndividual,
+            contactEmail: ocmCharger.OperatorInfo.ContactEmail,
             title: ocmCharger.OperatorInfo.Title
         };
     } else {
@@ -95,8 +87,8 @@ module.exports.transformOcmEntity = (ocmCharger) => {
 
     return {
         ocmId: ocmCharger.ID,
-        connections: connections,
-        network: network,
+        connections,
+        network,
         address: {
             title: ocmCharger.AddressInfo.Title,
             addressLine1: ocmCharger.AddressInfo.AddressLine1,
@@ -104,9 +96,9 @@ module.exports.transformOcmEntity = (ocmCharger) => {
             town: ocmCharger.AddressInfo.Town,
             stateOrProvince: ocmCharger.AddressInfo.StateOrProvince,
             postcode: ocmCharger.AddressInfo.Postcode,
-            country: ocmCharger.AddressInfo.Country.ISOCode,                    
+            country: ocmCharger.AddressInfo.Country.ISOCode,
             latitude: ocmCharger.AddressInfo.Latitude,
-            longitude: ocmCharger.AddressInfo.Longitude,
+            longitude: ocmCharger.AddressInfo.Longitude
         },
         ocm: {
             id: ocmCharger.ID,
@@ -115,4 +107,4 @@ module.exports.transformOcmEntity = (ocmCharger) => {
             dateLastStatusUpdate: ocmCharger.DateLastStatusUpdate
         }
     };
-}
+};

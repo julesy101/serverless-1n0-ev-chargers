@@ -7,4 +7,5 @@ jspm_packages
 .dynamodb
 .webpack
 .nyc_output
+**/coverage
 coverage

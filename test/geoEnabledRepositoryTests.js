@@ -1,17 +1,19 @@
 const sinon = require('sinon');
+// eslint-disable-next-line prefer-destructuring
 const expect = require('chai')
     .use(require('sinon-chai'))
     .use(require('chai-as-promised')).expect;
-const ChargerRepository = require('../db/repository').ChargerRepository;
-const GeoEnabledChargerRepository = require('../db/geoEnabledRepository').GeoChargerRepository;
+// eslint-disable-next-line prefer-destructuring
 const GeoDataManager = require('dynamodb-geo').GeoDataManager;
+const ChargerRepository = require('../db/repository');
+const GeoEnabledChargerRepository = require('../db/geoEnabledRepository');
 
 describe('dynamodb geo enabled repository', () => {
     it('deletes main charger table entry if error occurs saving geo point', async () => {
-        sinon.stub(GeoDataManager.prototype, 'putPoint').callsFake(o => {
+        sinon.stub(GeoDataManager.prototype, 'putPoint').callsFake(() => {
             throw new Error('test failure');
         });
-        sinon.stub(ChargerRepository.prototype, 'addCharger').callsFake(c => {
+        sinon.stub(ChargerRepository, 'addCharger').callsFake(() => {
             return {
                 id: 'ddggdfggdfgd',
                 address: {
@@ -20,18 +22,19 @@ describe('dynamodb geo enabled repository', () => {
                 }
             };
         });
-        let delCharger = sinon.stub(ChargerRepository.prototype, 'deleteCharger').callsFake(chrger => chrger);
-        let geoRepo = new GeoEnabledChargerRepository();
+        const delCharger = sinon.stub(ChargerRepository, 'deleteCharger').callsFake(chrger => chrger);
         try {
-            await geoRepo.addCharger({ test: 'charger' });
-        } catch (e) {}
+            await GeoEnabledChargerRepository.addCharger({ test: 'charger' });
+        } catch (e) {
+            // hold it and do noting
+        }
         expect(delCharger).to.be.called;
     });
     it('throws an error if saving failed', () => {
-        sinon.stub(GeoDataManager.prototype, 'putPoint').callsFake(o => {
+        sinon.stub(GeoDataManager.prototype, 'putPoint').callsFake(() => {
             throw new Error('test failure');
         });
-        sinon.stub(ChargerRepository.prototype, 'addCharger').callsFake(c => {
+        sinon.stub(ChargerRepository, 'addCharger').callsFake(() => {
             return {
                 id: 'ddggdfggdfgd',
                 address: {
@@ -40,31 +43,28 @@ describe('dynamodb geo enabled repository', () => {
                 }
             };
         });
-        sinon.stub(ChargerRepository.prototype, 'deleteCharger').callsFake(chrger => chrger);
-        let geoRepo = new GeoEnabledChargerRepository();
-        expect(geoRepo.addCharger({ test: 'charger' })).to.be.rejectedWith(Error);
+        sinon.stub(ChargerRepository, 'deleteCharger').callsFake(chrger => chrger);
+        expect(GeoEnabledChargerRepository.addCharger({ test: 'charger' })).to.be.rejectedWith(Error);
     });
     it('does not save geo point if error saving to main table', async () => {
-        let putFake = sinon.stub(GeoDataManager.prototype, 'putPoint').callsFake(o => {});
-        sinon.stub(ChargerRepository.prototype, 'addCharger').callsFake(c => {
+        const putFake = sinon.stub(GeoDataManager.prototype, 'putPoint').callsFake(() => {});
+        sinon.stub(ChargerRepository, 'addCharger').callsFake(() => {
             return null;
         });
 
-        let geoRepo = new GeoEnabledChargerRepository();
-        await geoRepo.addCharger({ test: 'charger' });
+        await GeoEnabledChargerRepository.addCharger({ test: 'charger' });
 
         expect(putFake).to.not.be.called;
     });
     it('radius search ensures lat lng and radius are numbers', () => {
-        let geoRepo = new GeoEnabledChargerRepository();
-        expect(geoRepo.radiusSearch('not number', -3.42, 20)).to.be.rejectedWith(Error);
-        expect(geoRepo.radiusSearch(34.56, 'not number', 20)).to.be.rejectedWith(Error);
-        expect(geoRepo.radiusSearch(54.34, -3.42, 'not number')).to.be.rejectedWith(Error);
+        expect(GeoEnabledChargerRepository.radiusSearch('not number', -3.42, 20)).to.be.rejectedWith(Error);
+        expect(GeoEnabledChargerRepository.radiusSearch(34.56, 'not number', 20)).to.be.rejectedWith(Error);
+        expect(GeoEnabledChargerRepository.radiusSearch(54.34, -3.42, 'not number')).to.be.rejectedWith(Error);
     });
 
     afterEach(() => {
-        if (ChargerRepository.prototype.addCharger.restore) ChargerRepository.prototype.addCharger.restore();
-        if (ChargerRepository.prototype.deleteCharger.restore) ChargerRepository.prototype.deleteCharger.restore();
+        if (ChargerRepository.addCharger.restore) ChargerRepository.addCharger.restore();
+        if (ChargerRepository.deleteCharger.restore) ChargerRepository.deleteCharger.restore();
         if (GeoDataManager.prototype.putPoint.restore) GeoDataManager.prototype.putPoint.restore();
     });
 });

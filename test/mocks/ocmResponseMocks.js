@@ -1,5 +1,5 @@
 class MockOcmResults {
-    get standardResponse(){
+    static get standardResponse() {
         return `[
             {
               "ID": 121519,
@@ -344,8 +344,8 @@ class MockOcmResults {
           ]`;
     }
 
-    get malformedConnectionChargerResponse(){
-      return `[            {
+    static get malformedConnectionChargerResponse() {
+        return `[            {
         "ID": 121518,
         "UUID": "113FA856-5056-4C8C-B074-32705458B828",
         "DataProviderID": 1,
@@ -489,8 +489,8 @@ class MockOcmResults {
       }]`;
     }
 
-    get noConnectionChargerResponse(){
-      return `[{
+    static get noConnectionChargerResponse() {
+        return `[{
         "ID": 121520,
         "UUID": "564024BB-BAC2-43E1-8188-1BF8DA4C1FB6",
         "DataProviderID": 1,
@@ -566,10 +566,10 @@ class MockOcmResults {
         "IsRecentlyVerified": true,
         "DateLastVerified": "2019-04-04T05:16:00Z"
       }]`;
-  }
-  
-  get noOperatorResponse(){
-    return `[{
+    }
+
+    static get noOperatorResponse() {
+        return `[{
       "ID": 121520,
       "UUID": "564024BB-BAC2-43E1-8188-1BF8DA4C1FB6",
       "DataProviderID": 1,
@@ -671,7 +671,7 @@ class MockOcmResults {
       "IsRecentlyVerified": true,
       "DateLastVerified": "2019-04-04T05:16:00Z"
     }]`;
-}
+    }
 }
 
-module.exports = new MockOcmResults();
+module.exports = MockOcmResults;

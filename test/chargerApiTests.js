@@ -1,144 +1,147 @@
 const sinon = require('sinon');
-const expect = require('chai').use(require('sinon-chai')).use(require('chai-as-promised')).expect;
+// eslint-disable-next-line prefer-destructuring
+const expect = require('chai')
+    .use(require('sinon-chai'))
+    .use(require('chai-as-promised')).expect;
 const ChargerApiSdk = require('../sdk/chargersApi');
 const Charger = require('../entities/charger');
-const RequestWrapper = require('../utilities/request-wrapper').RequestWrapper;
+const RequestWrapper = require('../utilities/request-wrapper');
 const crp = require('./mocks/chargerRepositoryMocks');
 
 describe('charger external sdk', () => {
-    it("rejects an invalid add charger model before calling the endpoint", async () => {
-        let rputFake = sinon.stub(RequestWrapper.prototype, 'put').callsFake((url, body) => {});
-        let api = new ChargerApiSdk();
+    it('rejects an invalid add charger model before calling the endpoint', async () => {
+        const rputFake = sinon.stub(RequestWrapper, 'put').callsFake(() => {});
+        const api = new ChargerApiSdk();
         try {
             await api.addCharger({
-                notValidKey: "this isnt a valid key",
-                notValidCharger: "this isnt a valid charger"
+                notValidKey: 'this isnt a valid key',
+                notValidCharger: 'this isnt a valid charger'
             });
-        } catch(e) {
-            // we expect this to throw an error but for now we 
+        } catch (e) {
+            // we expect this to throw an error but for now we
             // just want to see if it called our fake.
         }
         expect(rputFake).to.not.be.called;
     });
-    it("addCharger throws an error if model not valid", () => {
-        let api = new ChargerApiSdk();
-        expect(api.addCharger({
-            notValidKey: "this isnt a valid key",
-            notValidCharger: "this isnt a valid charger"
-        })).to.be.rejectedWith(Error);
+    it('addCharger throws an error if model not valid', () => {
+        const api = new ChargerApiSdk();
+        expect(
+            api.addCharger({
+                notValidKey: 'this isnt a valid key',
+                notValidCharger: 'this isnt a valid charger'
+            })
+        ).to.be.rejectedWith(Error);
     });
-    it("addCharger returns a concrete instance of Charger", async () => {
-        sinon.stub(RequestWrapper.prototype, 'put').callsFake(() => {
+    it('addCharger returns a concrete instance of Charger', async () => {
+        sinon.stub(RequestWrapper, 'put').callsFake(() => {
             return Promise.resolve(crp.rawSerializedChargers()[0]);
         });
-        let api = new ChargerApiSdk();
-        let charger = await api.addCharger(crp.addChargerModelInput());
+        const api = new ChargerApiSdk();
+        const charger = await api.addCharger(crp.addChargerModelInput());
         expect(charger).to.be.instanceOf(Charger);
     });
-    it("rejects an update charger model without an id populated", () => {
-        let api = new ChargerApiSdk();
-        expect(api.updateCharger({
-            notValidKey: "this isnt a valid key",
-            notValidCharger: "this isnt a valid charger"
-        })).to.be.rejectedWith(Error);
+    it('rejects an update charger model without an id populated', () => {
+        const api = new ChargerApiSdk();
+        expect(
+            api.updateCharger({
+                notValidKey: 'this isnt a valid key',
+                notValidCharger: 'this isnt a valid charger'
+            })
+        ).to.be.rejectedWith(Error);
     });
-    it("rejects an update model with invalid field types", () => {
-        let api = new ChargerApiSdk();
-        let dummyC = crp.allChargers()[0];
-        dummyC.network = "wait what?";
+    it('rejects an update model with invalid field types', () => {
+        const api = new ChargerApiSdk();
+        const dummyC = crp.allChargers()[0];
+        dummyC.network = 'wait what?';
 
         expect(api.updateCharger(dummyC)).to.be.rejectedWith(Error);
     });
-    it("updateCharger with valid model issues a post to the api", async () => {
-        let postFake = sinon.stub(RequestWrapper.prototype, 'post').callsFake(() => {
+    it('updateCharger with valid model issues a post to the api', async () => {
+        const postFake = sinon.stub(RequestWrapper, 'post').callsFake(() => {
             return Promise.resolve(crp.rawSerializedChargers()[0]);
         });
-        let api = new ChargerApiSdk();
+        const api = new ChargerApiSdk();
         await api.updateCharger(crp.rawSerializedChargers()[0]);
 
         expect(postFake).to.be.called;
     });
-    it("updateCharger with valid model returns an instance of Charger", async () => {
-        sinon.stub(RequestWrapper.prototype, 'post').callsFake(() => {
+    it('updateCharger with valid model returns an instance of Charger', async () => {
+        sinon.stub(RequestWrapper, 'post').callsFake(() => {
             return Promise.resolve(crp.rawSerializedChargers()[0]);
         });
-        let api = new ChargerApiSdk();
-        let charger = await api.updateCharger(crp.rawSerializedChargers()[0]);
+        const api = new ChargerApiSdk();
+        const charger = await api.updateCharger(crp.rawSerializedChargers()[0]);
 
         expect(charger).to.be.instanceOf(Charger);
     });
-    it("no options passed creates an api proxy with process env APIBASEURL utilised", () => {
-        let api = new ChargerApiSdk();
-        expect(api.baseUrl).to.be.equal("http://baseUrl.com/dev")
-    }); 
-    it("passing options creates an api with the base url set to the option passed", () => {
-        let api = new ChargerApiSdk("https://testapi.com/dev");
-        expect(api.baseUrl).to.be.equal("https://testapi.com/dev");
+    it('no options passed creates an api proxy with process env APIBASEURL utilised', () => {
+        const api = new ChargerApiSdk();
+        expect(api.baseUrl).to.be.equal('http://baseUrl.com/dev');
     });
-    it("searchByCoordinates rejects non number lat, lng or radius", () => {
-        let api = new ChargerApiSdk();
-        expect(api.searchChargerByCoordinates("not lat", -0.343, 1000)).to.be.rejectedWith(Error);
-        expect(api.searchChargerByCoordinates(57.675, "not lng", 1000)).to.be.rejectedWith(Error);
-        expect(api.searchChargerByCoordinates(57.675, -0.343, "not rad")).to.be.rejectedWith(Error);
+    it('passing options creates an api with the base url set to the option passed', () => {
+        const api = new ChargerApiSdk('https://testapi.com/dev');
+        expect(api.baseUrl).to.be.equal('https://testapi.com/dev');
     });
-    it("searchByCoordinates rejects a radius < 1000", () => {
-        let api = new ChargerApiSdk();
+    it('searchByCoordinates rejects non number lat, lng or radius', () => {
+        const api = new ChargerApiSdk();
+        expect(api.searchChargerByCoordinates('not lat', -0.343, 1000)).to.be.rejectedWith(Error);
+        expect(api.searchChargerByCoordinates(57.675, 'not lng', 1000)).to.be.rejectedWith(Error);
+        expect(api.searchChargerByCoordinates(57.675, -0.343, 'not rad')).to.be.rejectedWith(Error);
+    });
+    it('searchByCoordinates rejects a radius < 1000', () => {
+        const api = new ChargerApiSdk();
         expect(api.searchChargerByCoordinates(57.345, -0.343, 10)).to.be.rejectedWith(Error);
     });
-    it("searchByCoordinates returns all instances as Chargers", async () => {
-        let gcFake = sinon.stub(RequestWrapper.prototype, 'get').callsFake(() => {
+    it('searchByCoordinates returns all instances as Chargers', async () => {
+        sinon.stub(RequestWrapper, 'get').callsFake(() => {
             return Promise.resolve(crp.rawSerializedChargers());
         });
-        let api = new ChargerApiSdk();
-        let chargers = await api.searchChargerByCoordinates(57.034, -0.345, 1500);
+        const api = new ChargerApiSdk();
+        const chargers = await api.searchChargerByCoordinates(57.034, -0.345, 1500);
         chargers.forEach(charger => {
             expect(charger).to.be.instanceOf(Charger);
         });
     });
-    it("getCharger rejects empty string or null as a parameter", () => {
-        let api = new ChargerApiSdk();
-        expect(api.getCharger("")).to.be.rejectedWith(Error);
+    it('getCharger rejects empty string or null as a parameter', () => {
+        const api = new ChargerApiSdk();
+        expect(api.getCharger('')).to.be.rejectedWith(Error);
         expect(api.getCharger(null)).to.be.rejectedWith(Error);
     });
-    it("getCharger returns a concrete instance of Charger", async () => {
-        let gcFake = sinon.stub(RequestWrapper.prototype, 'get').callsFake(() => {
+    it('getCharger returns a concrete instance of Charger', async () => {
+        sinon.stub(RequestWrapper, 'get').callsFake(() => {
             return Promise.resolve(crp.rawSerializedChargers()[0]);
         });
-        let api = new ChargerApiSdk();
-        let charger = await api.getCharger("some_id");
+        const api = new ChargerApiSdk();
+        const charger = await api.getCharger('some_id');
         expect(charger).to.be.instanceOf(Charger);
     });
-    it("deleteCharger rejects an empty string or null for charger id", () => {
-        let api = new ChargerApiSdk();
-        expect(api.deleteCharger("")).to.be.rejectedWith(Error);
+    it('deleteCharger rejects an empty string or null for charger id', () => {
+        const api = new ChargerApiSdk();
+        expect(api.deleteCharger('')).to.be.rejectedWith(Error);
         expect(api.deleteCharger(null)).to.be.rejectedWith(Error);
     });
-    it("deleteCharger issues a delete to the charger endpoint", async () => {
-        let dlFake = sinon.stub(RequestWrapper.prototype, 'delete').callsFake(() => {
+    it('deleteCharger issues a delete to the charger endpoint', async () => {
+        const dlFake = sinon.stub(RequestWrapper, 'delete').callsFake(() => {
             return Promise.resolve();
         });
-        let api = new ChargerApiSdk();
-        await api.deleteCharger("some_id");
+        const api = new ChargerApiSdk();
+        await api.deleteCharger('some_id');
 
         expect(dlFake).to.be.called;
-        expect(dlFake.getCall(0).args[0]).to.be.equal("http://baseUrl.com/dev/chargers/delete/some_id")
+        expect(dlFake.getCall(0).args[0]).to.be.equal('http://baseUrl.com/dev/chargers/delete/some_id');
     });
     beforeEach(() => {
-        process.env.APIBASEURL = "http://baseUrl.com/dev"
+        process.env.APIBASEURL = 'http://baseUrl.com/dev';
     });
 
     afterEach(() => {
         delete process.env.APIBASEURL;
-        if(RequestWrapper.prototype.get.restore)
-            RequestWrapper.prototype.get.restore();
+        if (RequestWrapper.get.restore) RequestWrapper.get.restore();
 
-        if(RequestWrapper.prototype.put.restore)
-            RequestWrapper.prototype.put.restore();
-        
-        if(RequestWrapper.prototype.post.restore)
-            RequestWrapper.prototype.post.restore();
-        
-        if(RequestWrapper.prototype.delete.restore)
-            RequestWrapper.prototype.delete.restore();
+        if (RequestWrapper.put.restore) RequestWrapper.put.restore();
+
+        if (RequestWrapper.post.restore) RequestWrapper.post.restore();
+
+        if (RequestWrapper.delete.restore) RequestWrapper.delete.restore();
     });
 });

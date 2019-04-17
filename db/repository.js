@@ -1,153 +1,138 @@
-const dynamoDb = require("./dynamoDb");
-const uuid =  require('uuid');
+const uuid = require('uuid');
+const dynamoDb = require('./dynamoDb');
 const partioner = require('../utilities/arrayPartitioner');
 const Charger = require('../entities/charger');
 
 class ChargerRepository {
-    constructor(){
-        this._mostRecentStatId = "OCM-MOST-RECENT"
-    }
-    async openChargeMapLastModifiedDate(){
-        let params = {
+    static async openChargeMapLastModifiedDate() {
+        const params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER_STATS,
             Key: {
-                "id":  this._mostRecentStatId 
+                id: 'OCM-MOST-RECENT'
             }
         };
-        let mostRecent = await dynamoDb.get(params)
-                                       .promise();
-        if(mostRecent.Item)
-            return mostRecent.Item.dateLastStatusUpdate;
-        
+        const mostRecent = await dynamoDb.get(params).promise();
+        if (mostRecent.Item) return mostRecent.Item.dateLastStatusUpdate;
+
         return null;
     }
-    
-    async setOpenChargeMapLastModifiedDate(ocmLastModified){
-        ocmLastModified.id = this._mostRecentStatId;
-        let params =  {
+
+    static async setOpenChargeMapLastModifiedDate(ocm) {
+        const ocmLastModified = ocm;
+        ocmLastModified.id = 'OCM-MOST-RECENT';
+        const params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER_STATS,
             Item: ocmLastModified
-        }
+        };
 
-        await dynamoDb.put(params)
-                      .promise();
+        await dynamoDb.put(params).promise();
     }
 
-    async getCharger(id){
-        if(!id || id === "")
-            return;
+    static async getCharger(id) {
+        if (!id || id === '') return null;
 
-        let params = {
+        const params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
             Key: {
-                "id":  id 
+                id
             }
-        }
+        };
 
-        let item = await dynamoDb.get(params)
-                                 .promise();
-        if(item.Item)
-            return new Charger(item.Item);
-        
-        return;
+        const item = await dynamoDb.get(params).promise();
+        if (item.Item) return new Charger(item.Item);
+
+        return null;
     }
 
-    async getChargers(ids) {
-        if(!ids || ids.length === 0)
-        return [];
-    
-        let batchedGets = [];
-        let partitionedIds = partioner(ids, 100);
-        partitionedIds.forEach((partioned) => {
-            let keys = [];
+    static async getChargers(ids) {
+        if (!ids || ids.length === 0) return [];
+
+        const batchedGets = [];
+        const partitionedIds = partioner(ids, 100);
+        partitionedIds.forEach(partioned => {
+            const keys = [];
             partioned.forEach(key => {
                 keys.push({
-                    "id": key
+                    id: key
                 });
             });
-            let requestItems = {};
+            const requestItems = {};
             requestItems[process.env.DYNAMODB_TABLE_CHARGER] = {
                 Keys: keys
             };
-            let params = {
+            const params = {
                 RequestItems: requestItems
-            }
+            };
 
             batchedGets.push(dynamoDb.batchGet(params).promise());
         });
-        let result = await Promise.all(batchedGets);
+        const result = await Promise.all(batchedGets);
 
-        let all = result.map(x => x.Responses && x.Responses[process.env.DYNAMODB_TABLE_CHARGER]);
-        let flat = [];
+        const all = result.map(x => x.Responses && x.Responses[process.env.DYNAMODB_TABLE_CHARGER]);
+        const flat = [];
         all.forEach(x => x.forEach(z => flat.push(new Charger(z))));
         return flat;
     }
 
-    async getOcmCharger(ocmId){
-        let params = {
+    static async getOcmCharger(ocmId) {
+        const params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
-            IndexName: "OCMChargers",
-            KeyConditionExpression: "ocmId = :ocmId",
+            IndexName: 'OCMChargers',
+            KeyConditionExpression: 'ocmId = :ocmId',
             ExpressionAttributeValues: {
-                ":ocmId": ocmId
+                ':ocmId': ocmId
             }
-        }
+        };
 
-        let item = await dynamoDb.query(params).promise();
-        if(item.Items && item.Items.length > 0)
-            return new Charger(item.Items[0]);
-        
-            return null;
+        const item = await dynamoDb.query(params).promise();
+        if (item.Items && item.Items.length > 0) return new Charger(item.Items[0]);
+
+        return null;
     }
 
-    async addCharger(charger){
-        let timestamp = new Date().getTime();
+    static async addCharger(addChargerModel) {
+        const charger = addChargerModel;
+        const timestamp = new Date().getTime();
         charger.id = uuid.v4();
         charger.created = timestamp;
         charger.updated = timestamp;
 
-        let params =  {
+        const params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
             Item: charger
-        }
+        };
 
-        await dynamoDb.put(params)
-                      .promise();
+        await dynamoDb.put(params).promise();
 
         return new Charger(charger);
     }
 
-    async updateCharger(charger) {
-        if(!charger.id || charger.id === "")
-            throw new Error("id must be provided to update charger");
+    static async updateCharger(updateChargerModel) {
+        if (!updateChargerModel.id || updateChargerModel.id === '')
+            throw new Error('id must be provided to update charger');
+        const charger = updateChargerModel;
+        charger.updated = new Date().getTime();
 
-        let timestamp = new Date().getTime();
-        charger.updated = timestamp;
-
-        let params =  {
+        const params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
             Item: charger
-        }
+        };
 
-        await dynamoDb.put(params)
-                      .promise();
+        await dynamoDb.put(params).promise();
 
         return new Charger(charger);
     }
 
-    async deleteCharger(charger){
-        let params = {
+    static async deleteCharger(charger) {
+        const params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
             Key: {
-                "id": charger.id
+                id: charger.id
             }
         };
 
-        return await dynamoDb.delete(params)
-                             .promise();
+        await dynamoDb.delete(params).promise();
     }
-
 }
 
-module.exports = new ChargerRepository();
-module.exports.ChargerRepository = ChargerRepository;
+module.exports = ChargerRepository;

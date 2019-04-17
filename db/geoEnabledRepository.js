@@ -1,21 +1,13 @@
-const ChargerRepository = require('./repository').ChargerRepository;
-const dynamoGeo = require('dynamodb-geo');
-const dynamoDb = require('./dynamoDb').DynamoDB;
+const ChargerRepository = require('./repository');
+const geoManager = require('./geoManagerConfig');
 
 class GeoEnabledChargerRepository extends ChargerRepository {
-    constructor(){
-        super();
-        this.geoConf = new dynamoGeo.GeoDataManagerConfiguration(dynamoDb, process.env.DYNAMODB_TABLE_CHARGER_GEO);
-        this.geoConf.hashKeyLength = Number.parseInt(process.env.GEOHASHLENGTH);
-        this._geoManager = new dynamoGeo.GeoDataManager(this.geoConf);     
-    }
-
-    async addCharger(charger){  
-        let savedCharger = await super.addCharger(charger)
-        if(savedCharger){
-            try{
+    static async addCharger(charger) {
+        const savedCharger = await super.addCharger(charger);
+        if (savedCharger) {
+            try {
                 // create a geo compatible point
-                let geoObj = {
+                const geoObj = {
                     RangeKeyValue: { S: savedCharger.id },
                     GeoPoint: {
                         latitude: savedCharger.address.latitude,
@@ -23,39 +15,41 @@ class GeoEnabledChargerRepository extends ChargerRepository {
                     },
                     PutItemInput: {
                         Item: {
-                            id: { S: savedCharger.id}
+                            id: { S: savedCharger.id }
                         }
                     }
                 };
-                await this._geoManager.putPoint(geoObj).promise();
+                await geoManager.putPoint(geoObj).promise();
                 return savedCharger;
-            } catch(error){
+            } catch (error) {
                 // we now have an inconsistent state where there is a charger in the main
                 // table but not in our geohashed table, remove from the main table.
                 await super.deleteCharger(savedCharger);
-                throw new Error("failed to save to geo table")
+                throw new Error('failed to save to geo table');
             }
         }
+        return null;
     }
 
-    async radiusSearch(lat, lng, radius){
-        if(isNaN(lat) || isNaN(lng) || isNaN(radius))
-            throw new Error("lat, lng & radius need to be numbers");
+    static async radiusSearch(lat, lng, radius) {
+        if (Number.isNaN(lat) || Number.isNaN(lng) || Number.isNaN(radius))
+            throw new Error('lat, lng & radius need to be numbers');
 
-        let records = await this._geoManager.queryRadius({
+        const records = await geoManager.queryRadius({
             RadiusInMeter: radius,
             CenterPoint: {
                 latitude: lat,
                 longitude: lng
             }
         });
-        if(records && records.length > 0){
-            let ids = records.map(x => x.id.S);
-            return await super.getChargers(ids);
+        if (records && records.length > 0) {
+            const ids = records.map(x => x.id.S);
+            const chargers = await super.getChargers(ids);
+            if (chargers) return chargers;
         }
-        return;
+
+        return null;
     }
 }
 
-module.exports = new GeoEnabledChargerRepository();
-module.exports.GeoChargerRepository = GeoEnabledChargerRepository;
+module.exports = GeoEnabledChargerRepository;

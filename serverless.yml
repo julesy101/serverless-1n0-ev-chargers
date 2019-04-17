@@ -64,9 +64,6 @@ functions:
           description: a timed check against open maps db
           rate: rate(1 hour)
           enabled: true
-          input:
-            stageParams:
-              stage: dev
   addCharger:
     handler: handlers/add.addCharger
     events:
@@ -78,9 +75,15 @@ functions:
     handler: handlers/delete.deleteCharger
     events:
       - http:
-          path: chargers/delete
+          path: chargers/delete/{id}
           method: delete
           integration: lambda
+          request:
+            template:
+              application/json: >
+                { 
+                  "id" : "$input.params('id')" 
+                }
   modifyCharger:
     handler: handlers/update.updateCharger
     events:
