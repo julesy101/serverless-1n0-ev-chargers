@@ -11,7 +11,7 @@ const GeoEnabledChargerRepository = require('../db/geoEnabledRepository');
 const Charger = require('../entities/charger');
 
 describe('geo lookup handler tests', () => {
-    it('throws 400 bad request if lat, lng or radius is not a number', () => {
+    it('throws 400 bad request if lat or lng is not a number', () => {
         expect(
             geo({
                 lat: 'sdfdf',
@@ -24,13 +24,6 @@ describe('geo lookup handler tests', () => {
                 lat: '57.349',
                 lng: 'flkdsl',
                 radius: '1500'
-            })
-        ).to.be.rejectedWith(BadRequestError);
-        expect(
-            geo({
-                lat: '57.349',
-                lng: '-4.032',
-                radius: 'dkjdfjk'
             })
         ).to.be.rejectedWith(BadRequestError);
     });
@@ -58,6 +51,27 @@ describe('geo lookup handler tests', () => {
         chargers.forEach(charger => {
             expect(charger).to.be.instanceOf(Charger);
         });
+    });
+    it('respects radius when passed', async () => {
+        const radiusFake = sinon.stub(GeoEnabledChargerRepository, 'radiusSearch').callsFake(() => {
+            return Promise.resolve(chargerRepoMocks.allChargers());
+        });
+        await geo({
+            lat: '57.349',
+            lng: '-4.032',
+            radius: '5000'
+        });
+        expect(radiusFake.getCall(0).args[2]).to.be.equal(5000);
+    });
+    it('defaults to 1000m when radius not passed', async () => {
+        const radiusFake = sinon.stub(GeoEnabledChargerRepository, 'radiusSearch').callsFake(() => {
+            return Promise.resolve(chargerRepoMocks.allChargers());
+        });
+        await geo({
+            lat: '57.349',
+            lng: '-4.032'
+        });
+        expect(radiusFake.getCall(0).args[2]).to.be.equal(1000);
     });
     afterEach(() => {
         if (GeoEnabledChargerRepository.radiusSearch.restore) GeoEnabledChargerRepository.radiusSearch.restore();

@@ -123,14 +123,14 @@ class ChargerRepository {
         return new Charger(charger);
     }
 
-    static async deleteCharger(charger) {
+    static async deleteCharger(chargerId) {
+        if (!chargerId || chargerId === '') throw new Error('charger id must be provided');
         const params = {
             TableName: process.env.DYNAMODB_TABLE_CHARGER,
             Key: {
-                id: charger.id
+                id: chargerId
             }
         };
-
         await dynamoDb.delete(params).promise();
     }
 }

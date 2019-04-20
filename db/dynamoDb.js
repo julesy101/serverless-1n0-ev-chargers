@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk');
 
 let options = {};
+/* istanbul ignore next */
 // connect to local DB if running offline
 if (process.env.IS_OFFLINE) {
     options = {

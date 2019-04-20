@@ -1,33 +1,36 @@
 version: 2
 jobs:
-  build:
-    docker:
-      - image: circleci/node:8
-    working_directory: ~/repo
-    steps:
-      - checkout
-      - run:
-          name: Install Dependencies
-          command: npm install
-      - run: npm install mocha-junit-reporter # just for CircleCI
-      - run: mkdir reports
-      - run:
-          name: npm test
-          command: ./node_modules/.bin/mocha --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml
-          when: always
-      - run:
-          name: Install PIP
-          command: sudo apt-get install python-pip python-dev
-      - run:
-          name: Install awscli
-          command: sudo pip install awscli
-      - run:
-          name: Deploy
-          command: npm run deploy
-      - store_test_results:
-          path: reports
-      - store_artifacts:
-          path: ./reports/mocha/test-results.xml
-      - store_artifacts: # upload test coverage as artifact
-          path: ./coverage/lcov.info
-          prefix: tests
+    build:
+        docker:
+            - image: circleci/node:8
+        working_directory: ~/repo
+        steps:
+            - checkout
+            - run:
+                  name: Install Dependencies
+                  command: npm install
+            - run: npm install mocha-junit-reporter # just for CircleCI
+            - run: mkdir reports
+            - run:
+                  name: npm test
+                  command: ./node_modules/.bin/mocha --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml
+                  when: always
+            - run:
+                  name: Coverage
+                  command: npm run coverage
+            - run:
+                  name: Install PIP
+                  command: sudo apt-get install python-pip python-dev
+            - run:
+                  name: Install awscli
+                  command: sudo pip install awscli
+            - run:
+                  name: Deploy
+                  command: npm run deploy | tee deploy.out
+            - store_test_results:
+                  path: reports
+            - store_artifacts:
+                  path: ./reports/mocha/test-results.xml
+            - store_artifacts: # upload test coverage as artifact
+                  path: ./coverage/lcov.info
+                  prefix: tests

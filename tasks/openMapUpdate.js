@@ -1,9 +1,9 @@
 const PromiseThrottle = require('promise-throttle');
 const Charger = require('../entities/charger');
 const requestWrapper = require('../utilities/request-wrapper');
-const debug = require('../utilities/logger').debug;
+const log = require('../utilities/logger').debug;
 const chargerRepository = require('../db/geoEnabledRepository');
-const ocmMapper = require('../entities/charger').transformOcmEntity;
+const ocmMapper = require('../utilities/transformOcmEntity');
 
 const ocmUrl = 'https://api.openchargemap.io/v3/poi/?output=json';
 
@@ -19,11 +19,11 @@ module.exports.checkLatest = async () => {
         lmdNative.setMinutes(lmdNative.getMinutes() + 1);
         queryUrl = `${queryUrl}&modifiedsince=${new Date(lmdNative).toISOString()}`;
     }
-    debug(`querying: ${queryUrl}`);
+    log(`querying: ${queryUrl}`);
     // make the network call:
     const ocmChargers = JSON.parse(await requestWrapper.get(queryUrl));
     if (ocmChargers) {
-        debug(`chargers found: processing ${ocmChargers.length} chargers`);
+        log(`chargers found: processing ${ocmChargers.length} chargers`);
         const chargersToAdd = [];
         ocmChargers.forEach(ocmCharger => {
             if (ocmCharger === null) return;
@@ -61,13 +61,13 @@ module.exports.checkLatest = async () => {
                 }
             });
             const result = await Promise.all(promises);
-            if (result && result.length > 0) {
-                const sorted = result
-                    .filter(x => x && x !== null)
-                    .sort((a, b) => new Date(a.ocm.dateLastStatusUpdate) - new Date(b.ocm.dateLastStatusUpdate));
+
+            const sorted = result
+                .filter(x => x && x !== null)
+                .sort((a, b) => new Date(a.ocm.dateLastStatusUpdate) - new Date(b.ocm.dateLastStatusUpdate));
+            if (sorted.length > 0)
                 await chargerRepository.setOpenChargeMapLastModifiedDate(sorted[sorted.length - 1].ocm);
-                debug(`${sorted.length} chargers processed`);
-            }
+            log(`${sorted.length} chargers processed`);
         }
     }
 };

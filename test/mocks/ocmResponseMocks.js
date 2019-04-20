@@ -489,6 +489,223 @@ class MockOcmResults {
       }]`;
     }
 
+    static get chargerWithNoCurrentType() {
+        return ` {
+        "ID": 121518,
+        "UUID": "113FA856-5056-4C8C-B074-32705458B828",
+        "DataProviderID": 1,
+        "DataProvider": {
+          "WebsiteURL": "http://openchargemap.org",
+          "DataProviderStatusType": {
+            "IsProviderEnabled": true,
+            "ID": 1,
+            "Title": "Manual Data Entry"
+          },
+          "IsRestrictedEdit": false,
+          "IsOpenDataLicensed": true,
+          "IsApprovedImport": true,
+          "License": "Licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)",
+          "ID": 1,
+          "Title": "Open Charge Map Contributors"
+        },
+        "OperatorID": 20,
+        "OperatorInfo": {
+          "WebsiteURL": "http://www.chargeyourcar.org.uk/",
+          "PhonePrimaryContact": "0191 26 50 500",
+          "IsPrivateIndividual": false,
+          "ContactEmail": "admin@chargeyourcar.org.uk",
+          "FaultReportEmail": "admin@chargeyourcar.org.uk",
+          "IsRestrictedEdit": false,
+          "ID": 20,
+          "Title": "Charge Your Car"
+        },
+        "OperatorsReference": "CM11527,CM11528,CM11529,CM11530",
+        "UsageTypeID": 4,
+        "UsageType": {
+          "IsPayAtLocation": false,
+          "IsMembershipRequired": true,
+          "IsAccessKeyRequired": true,
+          "ID": 4,
+          "Title": "Public - Membership Required"
+        },
+        "UsageCost": "£0.20/kWh;min £1.00",
+        "AddressInfo": {
+          "ID": 121864,
+          "Title": "12 Victoria Street Car-Park, Nottingham",
+          "AddressLine1": "12 Victoria Street Car",
+          "Postcode": "NG16 3AW",
+          "CountryID": 1,
+          "Country": {
+            "ISOCode": "GB",
+            "ContinentCode": "EU",
+            "ID": 1,
+            "Title": "United Kingdom"
+          },
+          "Latitude": 53.0185,
+          "Longitude": -1.3058,
+          "DistanceUnit": 0
+        },
+        "NumberOfPoints": 2,
+        "StatusTypeID": 50,
+        "StatusType": {
+          "IsOperational": true,
+          "IsUserSelectable": true,
+          "ID": 50,
+          "Title": "Operational"
+        },
+        "DateLastStatusUpdate": "2019-04-04T05:15:00Z",
+        "DataQualityLevel": 1,
+        "DateCreated": "2019-04-04T05:15:00Z",
+        "SubmissionStatusTypeID": 200,
+        "SubmissionStatus": {
+          "IsLive": true,
+          "ID": 200,
+          "Title": "Submission Published"
+        },
+        "Connections": [
+          {
+            "ID": 171226,
+            "ConnectionTypeID": 25,
+            "ConnectionType": {
+              "FormalName": "IEC 62196-2 Type 2",
+              "IsDiscontinued": false,
+              "IsObsolete": false,
+              "ID": 25,
+              "Title": "Mennekes (Type 2)"
+            },
+            "StatusTypeID": 50,
+            "StatusType": {
+              "IsOperational": true,
+              "IsUserSelectable": true,
+              "ID": 50,
+              "Title": "Operational"
+            },
+            "LevelID": 2,
+            "Level": {
+              "Comments": "Over 2 kW, usually non-domestic socket type",
+              "IsFastChargeCapable": false,
+              "ID": 2,
+              "Title": "Level 2 : Medium (Over 2kW)"
+            },
+            "Amps": 32,
+            "Voltage": 230,
+            "PowerKW": 7.0,
+            "CurrentTypeID": 10
+          }
+        ],
+        "IsRecentlyVerified": true,
+        "DateLastVerified": "2019-04-04T05:15:00Z"
+      }`;
+    }
+
+    static get chargerWithNoConnectionType() {
+        return ` {
+          "ID": 121518,
+        "UUID": "113FA856-5056-4C8C-B074-32705458B828",
+        "DataProviderID": 1,
+        "DataProvider": {
+          "WebsiteURL": "http://openchargemap.org",
+          "DataProviderStatusType": {
+            "IsProviderEnabled": true,
+            "ID": 1,
+            "Title": "Manual Data Entry"
+          },
+          "IsRestrictedEdit": false,
+          "IsOpenDataLicensed": true,
+          "IsApprovedImport": true,
+          "License": "Licensed under Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)",
+          "ID": 1,
+          "Title": "Open Charge Map Contributors"
+        },
+        "OperatorID": 20,
+        "OperatorInfo": {
+          "WebsiteURL": "http://www.chargeyourcar.org.uk/",
+          "PhonePrimaryContact": "0191 26 50 500",
+          "IsPrivateIndividual": false,
+          "ContactEmail": "admin@chargeyourcar.org.uk",
+          "FaultReportEmail": "admin@chargeyourcar.org.uk",
+          "IsRestrictedEdit": false,
+          "ID": 20,
+          "Title": "Charge Your Car"
+        },
+        "OperatorsReference": "CM11527,CM11528,CM11529,CM11530",
+        "UsageTypeID": 4,
+        "UsageType": {
+          "IsPayAtLocation": false,
+          "IsMembershipRequired": true,
+          "IsAccessKeyRequired": true,
+          "ID": 4,
+          "Title": "Public - Membership Required"
+        },
+        "UsageCost": "£0.20/kWh;min £1.00",
+        "AddressInfo": {
+          "ID": 121864,
+          "Title": "12 Victoria Street Car-Park, Nottingham",
+          "AddressLine1": "12 Victoria Street Car",
+          "Postcode": "NG16 3AW",
+          "CountryID": 1,
+          "Country": {
+            "ISOCode": "GB",
+            "ContinentCode": "EU",
+            "ID": 1,
+            "Title": "United Kingdom"
+          },
+          "Latitude": 53.0185,
+          "Longitude": -1.3058,
+          "DistanceUnit": 0
+        },
+        "NumberOfPoints": 2,
+        "StatusTypeID": 50,
+        "StatusType": {
+          "IsOperational": true,
+          "IsUserSelectable": true,
+          "ID": 50,
+          "Title": "Operational"
+        },
+        "DateLastStatusUpdate": "2019-04-04T05:15:00Z",
+        "DataQualityLevel": 1,
+        "DateCreated": "2019-04-04T05:15:00Z",
+        "SubmissionStatusTypeID": 200,
+        "SubmissionStatus": {
+          "IsLive": true,
+          "ID": 200,
+          "Title": "Submission Published"
+        },
+        "Connections": [
+          {
+            "ID": 171226,
+            "ConnectionTypeID": 25,
+            "StatusTypeID": 50,
+            "StatusType": {
+              "IsOperational": true,
+              "IsUserSelectable": true,
+              "ID": 50,
+              "Title": "Operational"
+            },
+            "LevelID": 2,
+            "Level": {
+              "Comments": "Over 2 kW, usually non-domestic socket type",
+              "IsFastChargeCapable": false,
+              "ID": 2,
+              "Title": "Level 2 : Medium (Over 2kW)"
+            },
+            "Amps": 32,
+            "Voltage": 230,
+            "PowerKW": 7.0,
+            "CurrentTypeID": 10,
+            "CurrentType": {
+              "Description": "Alternating Current - Single Phase",
+              "ID": 10,
+              "Title": "AC (Single-Phase)"
+            },
+            "Quantity": 2
+          }
+        ],
+        "IsRecentlyVerified": true,
+        "DateLastVerified": "2019-04-04T05:15:00Z"
+      }`;
+    }
+
     static get noConnectionChargerResponse() {
         return `[{
         "ID": 121520,

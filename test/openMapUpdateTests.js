@@ -52,6 +52,30 @@ describe('open charge map update lambda', () => {
         expect(addChargerFake).to.not.be.called;
         expect(updateChargerFake).to.not.be.called;
     });
+    it('null chargers returned bypasses processing', async () => {
+        sinon.stub(ChargerRepository, 'openChargeMapLastModifiedDate').callsFake(() => '2019-04-01T23:00:00Z');
+        sinon.stub(ChargerRepository, 'getOcmCharger').callsFake(() => Promise.resolve(repoMocks.ocmChargers()));
+        sinon.stub(ChargerRepository, 'setOpenChargeMapLastModifiedDate').callsFake(() => Promise.resolve());
+
+        sinon.stub(RequestWrapper, 'get').callsFake(() => Promise.resolve('[null,null,null]'));
+
+        await checkLatest();
+
+        expect(addChargerFake).to.not.be.called;
+        expect(updateChargerFake).to.not.be.called;
+    });
+    it('undefined ocm response returned bypasses processing', async () => {
+        sinon.stub(ChargerRepository, 'openChargeMapLastModifiedDate').callsFake(() => '2019-04-01T23:00:00Z');
+        sinon.stub(ChargerRepository, 'getOcmCharger').callsFake(() => Promise.resolve(repoMocks.ocmChargers()));
+        sinon.stub(ChargerRepository, 'setOpenChargeMapLastModifiedDate').callsFake(() => Promise.resolve());
+
+        sinon.stub(RequestWrapper, 'get').callsFake(() => Promise.resolve(null));
+
+        await checkLatest();
+
+        expect(addChargerFake).to.not.be.called;
+        expect(updateChargerFake).to.not.be.called;
+    });
     it('connections without CurrentType and ConnectionType are ignored', async () => {
         sinon.stub(ChargerRepository, 'openChargeMapLastModifiedDate').callsFake(() => '2019-04-01T23:00:00Z');
         sinon.stub(ChargerRepository, 'getOcmCharger').callsFake(() => Promise.resolve(repoMocks.ocmChargers()));
@@ -100,6 +124,22 @@ describe('open charge map update lambda', () => {
 
         expect(addChargerFake).to.not.be.called;
         expect(updateChargerFake).to.be.called;
+    });
+    it('error whilst saving chargers doesnt set last updated', async () => {
+        sinon.stub(ChargerRepository, 'openChargeMapLastModifiedDate').callsFake(() => '2019-04-01T23:00:00Z');
+        sinon.stub(ChargerRepository, 'getOcmCharger').callsFake(() => Promise.resolve(null));
+        const setLatestFake = sinon
+            .stub(ChargerRepository, 'setOpenChargeMapLastModifiedDate')
+            .callsFake(() => Promise.resolve());
+        sinon.stub(RequestWrapper, 'get').callsFake(() => Promise.resolve(ocmResponses.standardResponse));
+        ChargerRepository.addCharger.restore();
+        ChargerRepository.updateCharger.restore();
+
+        addChargerFake = sinon.stub(ChargerRepository, 'addCharger').callsFake(() => Promise.resolve());
+        updateChargerFake = sinon.stub(ChargerRepository, 'updateCharger').callsFake(() => Promise.resolve());
+        await checkLatest();
+
+        expect(setLatestFake).to.not.be.called;
     });
     it('most recent add (no update) persists lastStatusUpdate', async () => {
         let latestOcm;

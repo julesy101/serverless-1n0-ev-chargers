@@ -3,7 +3,7 @@ const sinon = require('sinon');
 const expect = require('chai')
     .use(require('sinon-chai'))
     .use(require('chai-as-promised')).expect;
-const ChargerApiSdk = require('../sdk/chargersApi');
+const ChargerApiSdk = require('../sdk/chargersApi').Sdk;
 const Charger = require('../entities/charger');
 const RequestWrapper = require('../utilities/request-wrapper');
 const crp = require('./mocks/chargerRepositoryMocks');
@@ -74,10 +74,6 @@ describe('charger external sdk', () => {
 
         expect(charger).to.be.instanceOf(Charger);
     });
-    it('no options passed creates an api proxy with process env APIBASEURL utilised', () => {
-        const api = new ChargerApiSdk();
-        expect(api.baseUrl).to.be.equal('http://baseUrl.com/dev');
-    });
     it('passing options creates an api with the base url set to the option passed', () => {
         const api = new ChargerApiSdk('https://testapi.com/dev');
         expect(api.baseUrl).to.be.equal('https://testapi.com/dev');
@@ -128,14 +124,10 @@ describe('charger external sdk', () => {
         await api.deleteCharger('some_id');
 
         expect(dlFake).to.be.called;
-        expect(dlFake.getCall(0).args[0]).to.be.equal('http://baseUrl.com/dev/chargers/delete/some_id');
-    });
-    beforeEach(() => {
-        process.env.APIBASEURL = 'http://baseUrl.com/dev';
+        expect(dlFake.getCall(0).args[0]).to.be.equal('http://localhost:3000/chargers/delete/some_id');
     });
 
     afterEach(() => {
-        delete process.env.APIBASEURL;
         if (RequestWrapper.get.restore) RequestWrapper.get.restore();
 
         if (RequestWrapper.put.restore) RequestWrapper.put.restore();

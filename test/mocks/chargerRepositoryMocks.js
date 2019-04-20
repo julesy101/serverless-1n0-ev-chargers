@@ -1,6 +1,6 @@
 const responseMocks = require('./ocmResponseMocks');
 const Charger = require('../../entities/charger');
-const ocmMapper = require('../../entities/charger').transformOcmEntity;
+const ocmMapper = require('../../utilities/transformOcmEntity');
 
 class MockRepositoryResults {
     static addChargerModelInput() {
@@ -58,7 +58,8 @@ class MockRepositoryResults {
 
     static updateCharger(charger) {
         const testCharger = charger;
-        testCharger.updated = new Date().getTime();
+        const date = new Date();
+        testCharger.updated = date.setTime(date.getTime() + 1000);
 
         return Promise.resolve(testCharger);
     }

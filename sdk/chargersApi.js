@@ -4,7 +4,7 @@ const Charger = require('../entities/charger');
 
 class ChargerApiSdk {
     constructor(baseApi) {
-        if (!baseApi || baseApi === '') this.baseUrl = process.env.APIBASEURL;
+        if (!baseApi || baseApi === '') this.baseUrl = 'http://localhost:3000';
         else this.baseUrl = baseApi;
     }
 
@@ -14,13 +14,16 @@ class ChargerApiSdk {
         return new Charger(await rp.get(`${this.baseUrl}/chargers/fetch/${chargerId}`));
     }
 
-    async searchChargerByCoordinates(lat, lng, radius) {
-        if (Number.isNaN(lat) || Number.isNaN(lng) || Number.isNaN(radius))
+    async searchChargerByCoordinates(lat, lng, rad) {
+        const latitude = Number(lat);
+        const longitude = Number(lng);
+        const radius = Number(rad);
+        if (Number.isNaN(latitude) || Number.isNaN(longitude) || Number.isNaN(radius))
             throw new Error('lat, lng and radius must be numbers');
 
         if (radius < 1000) throw new Error('radius must be 1000m or more');
 
-        const chargers = await rp.get(`${this.baseUrl}/chargers/geo/${lat}/${lng}/${radius}`);
+        const chargers = await rp.get(`${this.baseUrl}/chargers/geo/${latitude}/${longitude}/${radius}`);
         return chargers.map(x => new Charger(x));
     }
 
@@ -43,5 +46,4 @@ class ChargerApiSdk {
     }
 }
 
-module.exports = ChargerApiSdk;
-module.exports.Charger = Charger;
+module.exports.Sdk = ChargerApiSdk;

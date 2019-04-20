@@ -31,12 +31,16 @@ class GeoEnabledChargerRepository extends ChargerRepository {
         return null;
     }
 
-    static async radiusSearch(lat, lng, radius) {
-        if (Number.isNaN(lat) || Number.isNaN(lng) || Number.isNaN(radius))
+    static async radiusSearch(latitude, longitude, radius) {
+        const lat = Number(latitude);
+        const lng = Number(longitude);
+        const rad = Number(radius);
+
+        if (Number.isNaN(lat) || Number.isNaN(lng) || Number.isNaN(rad))
             throw new Error('lat, lng & radius need to be numbers');
 
         const records = await geoManager.queryRadius({
-            RadiusInMeter: radius,
+            RadiusInMeter: rad,
             CenterPoint: {
                 latitude: lat,
                 longitude: lng
@@ -45,7 +49,7 @@ class GeoEnabledChargerRepository extends ChargerRepository {
         if (records && records.length > 0) {
             const ids = records.map(x => x.id.S);
             const chargers = await super.getChargers(ids);
-            if (chargers) return chargers;
+            return chargers;
         }
 
         return null;

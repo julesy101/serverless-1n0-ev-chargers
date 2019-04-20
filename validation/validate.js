@@ -28,9 +28,9 @@ class ModelValidator {
 
     get availableSchemas() {
         const out = [];
-        for (const key in this.validator.schemas) {
+        Object.keys(this.validator.schemas).forEach(key => {
             out.push(key);
-        }
+        });
         return out;
     }
 }

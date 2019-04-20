@@ -33,6 +33,75 @@ describe('charger connection features', () => {
         });
         assert.equal(charger.totalConnections, 3);
     });
+    it('no dbEntity object passed to constructor throws error', () => {
+        assert.throw(() => new Charger());
+    });
+    it('network name returns network object title', () => {
+        const charger = new Charger({
+            network: {
+                websiteURL: 'http://www.chargetimes.co.uk',
+                isPrivateIndividual: false,
+                contactEmail: 'hello@chargetimes.co.uk',
+                title: 'Charge Times'
+            },
+            address: {
+                title: 'new times building',
+                addressLine1: '12 some street',
+                town: 'London',
+                stateOrProvince: 'London',
+                postcode: 'SW1 4GH',
+                country: 'GB',
+                latitude: 57.112,
+                longitude: -0.231
+            },
+            connections: splitConnections
+        });
+        assert.equal(charger.networkName, 'Charge Times');
+    });
+    it('town returns address object town', () => {
+        const charger = new Charger({
+            network: {
+                websiteURL: 'http://www.chargetimes.co.uk',
+                isPrivateIndividual: false,
+                contactEmail: 'hello@chargetimes.co.uk',
+                title: 'Charge Times'
+            },
+            address: {
+                title: 'new times building',
+                addressLine1: '12 some street',
+                town: 'London',
+                stateOrProvince: 'London',
+                postcode: 'SW1 4GH',
+                country: 'GB',
+                latitude: 57.112,
+                longitude: -0.231
+            },
+            connections: splitConnections
+        });
+        assert.equal(charger.town, 'London');
+    });
+    it('postcode returns address object postcode', () => {
+        const charger = new Charger({
+            network: {
+                websiteURL: 'http://www.chargetimes.co.uk',
+                isPrivateIndividual: false,
+                contactEmail: 'hello@chargetimes.co.uk',
+                title: 'Charge Times'
+            },
+            address: {
+                title: 'new times building',
+                addressLine1: '12 some street',
+                town: 'London',
+                stateOrProvince: 'London',
+                postcode: 'SW1 4GH',
+                country: 'GB',
+                latitude: 57.112,
+                longitude: -0.231
+            },
+            connections: splitConnections
+        });
+        assert.equal(charger.postcode, 'SW1 4GH');
+    });
     it('current types return unique values only', () => {
         const charger = new Charger({
             connections: splitConnections
