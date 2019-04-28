@@ -124,7 +124,7 @@ describe('charger external sdk', () => {
         await api.deleteCharger('some_id');
 
         expect(dlFake).to.be.called;
-        expect(dlFake.getCall(0).args[0]).to.be.equal('http://localhost:3000/chargers/delete/some_id');
+        expect(dlFake.getCall(0).args[0]).to.be.equal('BASEURL/chargers/delete/some_id');
     });
 
     afterEach(() => {

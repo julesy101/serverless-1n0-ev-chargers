@@ -1,36 +1,104 @@
 version: 2
+defaults: &defaults
+    docker:
+        - image: circleci/node:8
+        working_directory: ~/repo
 jobs:
     build:
-        docker:
-            - image: circleci/node:8
-        working_directory: ~/repo
+        <<: *defaults
         steps:
             - checkout
+            - restore_cache:
+                keys:
+                    - v1-dependencies-{{ checksum "package.json" }}
+                    - v1-dependencies-
             - run:
-                  name: Install Dependencies
-                  command: npm install
+                name: Install Dependencies
+                command: npm install
             - run: npm install mocha-junit-reporter # just for CircleCI
             - run: mkdir reports
             - run:
-                  name: npm test
-                  command: ./node_modules/.bin/mocha --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml
-                  when: always
+                name: npm test
+                command: ./node_modules/.bin/mocha --recursive --timeout=10000 --exit --reporter mocha-junit-reporter --reporter-options mochaFile=reports/mocha/test-results.xml
+                when: always
             - run:
-                  name: Coverage
-                  command: npm run coverage
-            - run:
-                  name: Install PIP
-                  command: sudo apt-get install python-pip python-dev
-            - run:
-                  name: Install awscli
-                  command: sudo pip install awscli
-            - run:
-                  name: Deploy
-                  command: npm run deploy | tee deploy.out
+                name: Coverage
+                command: npm run coverage
+            - save_cache:
+                paths:
+                    - node_modules
+                    key: v1-dependencies-{{ checksum "package.json" }}
+            - persist_to_workspace:
+                root: ~/repo
+                paths: .
             - store_test_results:
-                  path: reports
+                path: reports
             - store_artifacts:
-                  path: ./reports/mocha/test-results.xml
+                path: ./reports/mocha/test-results.xml
             - store_artifacts: # upload test coverage as artifact
-                  path: ./coverage/lcov.info
-                  prefix: tests
+                path: ./coverage/lcov.info
+                prefix: tests
+    deploy:
+        <<: *defaults
+        steps:
+            - attach_workspace:
+                at: ~/repo
+            - run:
+                name: Install PIP
+                command: sudo apt-get install python-pip python-dev
+            - run:
+                name: Install awscli
+                command: sudo pip install awscli
+            - run:
+                name: Deploy
+                command: npm run deploy | tee deploy.out
+            - persist_to_workspace:
+                root: ~/repo
+                paths: .
+    publish:
+        <<: *defaults
+        steps:
+            - attach_workspace:
+                at: ~/repo
+            - run:
+                name: Build Sdk
+                command: npm run build
+            - run:
+                name: Authenticate with registry
+                command: cd sdk && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
+            - run:
+                name: Bump Sdk Version
+                run: cd sdk && npm version patch -m "Bumped sdk version to %s [ci skip]"
+            - run:
+                name: Publish Sdk
+                run: cd sdk && npm publish
+            - run:
+                name: Push to Origin
+                run: git push origin master
+workflows:
+    version: 2
+    deploy-publish:
+        jobs:
+            - build:
+                filters:
+                    tags:
+                        only: /^v.*/
+            - deploy:
+                requires:
+                    - build
+                filters:
+                    tags:
+                        only: /^v.*/
+                    branches:
+                        ignore: /.*/
+            - publish:
+                requires:
+                    - build
+                    - deploy
+                filters:
+                    tags:
+                        only: /^v.*/
+                    branches:
+                        ignore: /.*/    
+                    
+                

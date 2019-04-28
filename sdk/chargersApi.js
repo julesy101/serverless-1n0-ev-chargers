@@ -4,7 +4,7 @@ const Charger = require('../entities/charger');
 
 class ChargerApiSdk {
     constructor(baseApi) {
-        if (!baseApi || baseApi === '') this.baseUrl = 'http://localhost:3000';
+        if (!baseApi || baseApi === '') this.baseUrl = 'BASEURL';
         else this.baseUrl = baseApi;
     }
 

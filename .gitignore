@@ -9,3 +9,7 @@ jspm_packages
 .nyc_output
 **/coverage
 coverage
+
+# build / cd outputs
+deploy.out
+sdk/charger.api.bundle.js
