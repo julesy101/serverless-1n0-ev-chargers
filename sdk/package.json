@@ -1,8 +1,8 @@
 {
-  "name": "chargetimes-chargers-service-sdk",
-  "version": "0.1.1",
-  "description": "",
-  "main": "charger.api.bundle.js",
-  "author": "",
-  "license": "ISC"
+    "name": "chargetimes-chargers-service-sdk",
+    "version": "0.1.0",
+    "description": "",
+    "main": "charger.api.bundle.js",
+    "author": "",
+    "license": "ISC"
 }
