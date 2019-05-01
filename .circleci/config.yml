@@ -61,13 +61,13 @@ jobs:
                 command: cd sdk && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/repo/.npmrc
             - run:
                 name: Bump Sdk Version
-                run: cd sdk && npm version patch -m "Bumped sdk version to %s [ci skip]"
+                command: cd sdk && npm version patch -m "Bumped sdk version to %s [ci skip]"
             - run:
                 name: Publish Sdk
-                run: cd sdk && npm publish
+                command: cd sdk && npm publish
             - run:
                 name: Push to Origin
-                run: git push origin master
+                command: git push origin master
 workflows:
     version: 2
     deploy-publish:
