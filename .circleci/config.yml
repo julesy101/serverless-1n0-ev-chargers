@@ -58,7 +58,7 @@ jobs:
                 command: npm run build
             - run:
                 name: Authenticate with registry
-                command: cd sdk && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/repo/sdk/.npmrc
+                command: cd sdk && echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> .npmrc
             - run:
                 name: Bump Sdk Version
                 command: cd sdk && npm version patch -m "Bumped sdk version to %s [ci skip]"
